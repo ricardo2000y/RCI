@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/RCI/Code'
+gcc -g -Wall -pedantic -Wextra -c ring.c -o ring.o 
+gcc -g -L. -Wall -pedantic -Wextra -o ring.proj ring.o 
+make: Leaving directory '/home/RCI/Code'
+ 
