@@ -19,23 +19,57 @@ void get_info_from_client(int * command, char* fcommand){
     *command = fcommand[0];
 }
 
+/*Checks if IP and PORT are valid*/
+void valid_IP_nd_port(char* IP, char* PORT, bool* ip_validator, bool* port_validator){
+    int  dot_counter=-1,check;
+    char* s, *checker;
+
+    s =(char*) malloc(strlen(IP)+1);/* memory allocation*/
+    strcpy(s,IP);
+    checker = strtok(s,".");/*splits a string into several using the delimiter .*/
+    while( checker != NULL ) {
+        check = strtol(checker, NULL, 10);/*converts string into int*/
+        dot_counter++;
+        if (check <256 && check >-1) {
+            /*conditions for being valid each number of the ip has to be between 255 and 0*/
+            /*and has to have 3 dots*/
+            if(dot_counter == 3 ) *ip_validator =true;
+        }
+        checker = strtok(NULL, ".");
+    }
+    free(s);
+            
+    check = strtol(PORT, NULL, 10);
+    if(check <80000 && check > -1) *port_validator = true;
+    else *port_validator = false;
+
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 4) {
         printf("to run client supply ring key, IP and port, separated by a single space \n");
         exit(0);
     } 
+    bool valid_ip, valid_port;
+    node me, pred,succ;
+    memset(&me,0,sizeof(node));
+    memset(&pred, 0,sizeof(node));
+    memset(&succ, 0,sizeof(node));
     printf("%d\n", argc);
-    char* ip, *chave, *porto;
-    //int command;
-    chave = argv[1]; 
-    ip = argv[2];
-    porto = argv[3]; 
-    printf("%s\n", chave);   
-    printf("%s\n", ip); 
-    printf("%s\n", porto);
+    me.key = argv[1]; 
+    me.IP = argv[2];
+    me.PORT = argv[3]; 
+    valid_IP_nd_port(me.IP, me.PORT,&valid_ip, &valid_port);
+    if (valid_ip && valid_port){
+        printf("%s\n",me.key );   
+        printf("%s\n", me.IP);
+        printf("%s\n", me.PORT);
+    }
+    else printf("IP or Port provided is not valid");
     int command; 
     char fcommand[99];
+    
     get_info_from_client(&command, fcommand);
   
     if (command == 'n'){

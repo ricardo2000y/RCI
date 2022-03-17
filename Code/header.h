@@ -13,3 +13,9 @@
 
 #define SOCK_PORT 4000
 
+typedef struct {
+    /*struct sockaddr_in;*/
+    char* key;
+    char* IP;
+    char* PORT;
+} node;
