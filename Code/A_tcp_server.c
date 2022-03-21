@@ -69,13 +69,14 @@ int main(int argc, char *argv[])
                 (struct sockaddr *) &peer_addr, &peer_addr_len);
         if (nread == -1)
             continue;               /* Ignore failed request */
-
         char host[NI_MAXHOST], service[NI_MAXSERV]; s = getnameinfo((struct sockaddr *) &peer_addr,
                         peer_addr_len, host, NI_MAXHOST,
                         service, NI_MAXSERV, NI_NUMERICSERV);
-        if (s == 0)
+        if (s == 0){
             printf("Received %zd bytes from %s:%s\n",
                     nread, host, service);
+            printf("message was: %s\n", buf);
+        }
         else
             fprintf(stderr, "getnameinfo: %s\n", gai_strerror(s));
 

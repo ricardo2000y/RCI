@@ -72,21 +72,31 @@ int main(int argc, char *argv[])
     
     get_info_from_client(&command, fcommand);
   
-    if (command == 'n'){
+    if (command == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
          printf("deu\n");  
     }
         
-    else if (command =='b' ){}
+    else if (command =='b' ){
+
+    }
         
-    else if (command == 'p' ){}
+    else if (command == 'p' ){
+
+    }
         
-    else if ( command =='c' ){}
+    else if ( command =='c' ){
+
+    }
         
-    else if( command == 'd' /*'e' || "echord"*/){}/*problema porque e é short form para exit && echord prof tem que mudar*/
+    else if( command == 'd' /*'e'*/){}/*problema porque e é short form para exit && echord prof tem que mudar*/
         
-    else if(command =='s' ){}
+    else if(command =='s' ){
+
+    }
         
-    else if(command =='f' ){}
+    else if(command =='f' ){
+        
+    }
         
     else if(command =='l'){
 
