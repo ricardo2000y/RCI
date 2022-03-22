@@ -10,14 +10,15 @@
 
 #define PORT "58001"
 
-int fd, errcode;
-ssize_t n;
-socklen_t addrlen;
-struct addrinfo hints, *res;
-struct sockaddr_in addr;
-char buffer [128];
+
 
 int main(){
+    int fd, errcode;
+    ssize_t n;
+    socklen_t addrlen;
+    struct addrinfo hints, *res;
+    struct sockaddr_in addr;
+    char buffer [128];
     fd=socket(AF_INET,SOCK_STREAM,0);
     if (fd==-1) exit(1);
  

@@ -1,88 +1,93 @@
-#include <sys/types.h>
 #include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <netdb.h>
+#include <sys/types.h>
+#define MAX 80
+#define PORT 8080
+#define SA struct sockaddr
 
-#define BUF_SIZE 500
-
-int main(int argc, char *argv[])
+// Function designed for chat between client and server.
+void func(int connfd)
 {
-    struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int sfd, s;
-    struct sockaddr_storage peer_addr;
-    socklen_t peer_addr_len;
-    ssize_t nread;
-    char buf[BUF_SIZE];
+	char buff[MAX];
+	int n;
+	// infinite loop for chat
+    bzero(buff, MAX);	
+    // read the message from client and copy it in buffer
+    read(connfd, buff, sizeof(buff));
+    // print buffer which contains the client contents
+    printf("From client: %s\t To client : ", buff);
+    bzero(buff, MAX);
+    n = 0;
+    // copy server message in the buffer
+    while ((buff[n++] = getchar()) != '\n')
+        ;
 
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s port\n", argv[0]);
-        exit(EXIT_FAILURE);
+    // and send that buffer to client
+    write(connfd, buff, sizeof(buff));
+
+    // if msg contains "Exit" then server exit and chat ended.
+    if (strncmp("exit", buff, 4) == 0) {
+        printf("Server Exit...\n");
+		close(connfd);
+		exit(0);
     }
+	
+}
 
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
-    hints.ai_protocol = 0;          /* Any protocol */
-    hints.ai_canonname = NULL;
-    hints.ai_addr = NULL;
-    hints.ai_next = NULL;
+// Driver function
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
 
-    s = getaddrinfo(NULL, argv[1], &hints, &result);
-    if (s != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-        exit(EXIT_FAILURE);}
+	// socket create and verification
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
-    /* getaddrinfo() returns a list of address structures.
-        Try each address until we successfully bind(2).
-        If socket(2) (or bind(2)) fails, we (close the socket
-        and) try the next address. */
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
 
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sfd = socket(rp->ai_family, rp->ai_socktype,
-                rp->ai_protocol);
-        if (sfd == -1)
-            continue;
+	// Binding newly created socket to given IP and verification
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully binded..\n");
 
-        if (bind(sfd, rp->ai_addr, rp->ai_addrlen) == 0)
-            break;                  /* Success */
+	// Now server is ready to listen and verification
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	else
+		printf("Server listening..\n");
+	len = sizeof(cli);
 
-        close(sfd);
-    }
+	// Accept the data packet from client and verification
+	connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+	else
+		printf("server accept the client...\n");
 
-    if (rp == NULL) {               /* No address succeeded */
-        fprintf(stderr, "Could not bind\n");
-        exit(EXIT_FAILURE);
-    }
+	// Function for chatting between client and server
+	func(connfd);
 
-    freeaddrinfo(result);           /* No longer needed */
-
-    /* Read datagrams and echo them back to sender */
-
-    for (;;) {
-        peer_addr_len = sizeof(struct sockaddr_storage);
-        nread = recvfrom(sfd, buf, BUF_SIZE, 0,
-                (struct sockaddr *) &peer_addr, &peer_addr_len);
-        if (nread == -1)
-            continue;               /* Ignore failed request */
-        char host[NI_MAXHOST], service[NI_MAXSERV]; s = getnameinfo((struct sockaddr *) &peer_addr,
-                        peer_addr_len, host, NI_MAXHOST,
-                        service, NI_MAXSERV, NI_NUMERICSERV);
-        if (s == 0){
-            printf("Received %zd bytes from %s:%s\n",
-                    nread, host, service);
-            printf("message was: %s\n", buf);
-        }
-        else
-            fprintf(stderr, "getnameinfo: %s\n", gai_strerror(s));
-
-        if (sendto(sfd, buf, nread, 0,
-                    (struct sockaddr *) &peer_addr,
-                    peer_addr_len) != nread)
-            fprintf(stderr, "Error sending response\n");
-    }
+	// After chatting close the socket
+	close(sockfd);
 }

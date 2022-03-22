@@ -1,8 +1,10 @@
 #include "header.h"
 
-/* creates the socket to with the c||rect type (AF_INET) use and checks if the creation was sucessful */ 
-void criar_socket(int *sock_fd){
-    *sock_fd = socket(AF_INET, SOCK_DGRAM, 0);   //creates the socket
+/* creates the socket to with the corect type (true = dgram, false =stream) and checks if the creation was sucessful */ 
+void criar_socket(int *sock_fd, bool mode){/*true = dgram false = stream*/
+    if(mode)
+        *sock_fd = socket(AF_INET, SOCK_DGRAM, 0);   //creates the socket
+    else  *sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (*sock_fd == -1){                         //checks if the creation was sucessful
 	    perror("socket{} ");   
 	    exit(-1);
@@ -11,38 +13,53 @@ void criar_socket(int *sock_fd){
 }
 /*faz o fgets e obtém o command*/
 void get_info_from_client(int * command, char* fcommand){
-    fgets(fcommand,99,stdin);
-    if((fcommand[strlen(fcommand)-1])== '\n')
-        fcommand[strlen(fcommand)-1] ='\0';
+    int n=0;
+    while ((fcommand[n++] = getchar()) != '\n')
+    fcommand[n] ='\0';
     printf("\n\n  %s\n", fcommand);
 
     *command = fcommand[0];
+    
 }
 
 /*Checks if IP and PORT are valid*/
 void valid_IP_nd_port(char* IP, char* PORT, bool* ip_validator, bool* port_validator){
-    int  dot_counter=-1,check;
-    char* s, *checker;
-
-    s =(char*) malloc(strlen(IP)+1);/* memory allocation*/
-    strcpy(s,IP);
-    checker = strtok(s,".");/*splits a string into several using the delimiter .*/
-    while( checker != NULL ) {
-        check = strtol(checker, NULL, 10);/*converts string into int*/
-        dot_counter++;
-        if (check <256 && check >-1) {
-            /*conditions for being valid each number of the ip has to be between 255 and 0*/
-            /*and has to have 3 dots*/
-            if(dot_counter == 3 ) *ip_validator =true;
-        }
-        checker = strtok(NULL, ".");
-    }
-    free(s);
-            
+    int  check;
+    SA_in * ipvalidation;
+    ipvalidation = (SA_in*) malloc(sizeof(SA_in));
+    *ip_validator =inet_pton( AF_INET, IP, ipvalidation );
+    free(ipvalidation);
     check = strtol(PORT, NULL, 10);
-    if(check <80000 && check > -1) *port_validator = true;
+    if(check <65536 && check > 0) *port_validator = true;
     else *port_validator = false;
+    
+}
 
+void copy_node_info(node *origin, node *copy){
+    copy->IP= origin->IP;
+    copy->key= origin->key;
+    copy->PORT = origin->PORT;
+}
+
+void new(node *me, node *pred, node *succ){
+    copy_node_info(me,pred);
+    copy_node_info(me,succ);
+    printf("%s\n %s\n %s\n",  pred->key,pred->IP,pred->PORT);
+    /*start tcp client and server(connect one to the other is unecessary(?)(have a variable knowing node is only one node)) + udp server*/
+}
+
+void split_command(char * fcommand, command_details_t* command_details){
+    char* splitted;
+    char* str;/*=(char*) malloc(sizeof(*fcommand)+1);*/
+    str = strdup(fcommand);
+    splitted = strsep(&str, " ");
+    command_details->key=strdup (splitted);
+    splitted = strsep(&str, " ");
+    command_details->IP=strdup (splitted);
+    splitted = strsep(&str, " ");
+    command_details->PORT=strdup (splitted);
+    printf("%s,%s,%s", command_details->key,command_details->key,command_details->PORT);
+    free(str);
 }
 
 int main(int argc, char *argv[])
@@ -53,13 +70,16 @@ int main(int argc, char *argv[])
     } 
     bool valid_ip, valid_port;
     node me, pred,succ;
+    command_details_t command_details;
     memset(&me,0,sizeof(node));
     memset(&pred, 0,sizeof(node));
     memset(&succ, 0,sizeof(node));
+    memset(&command_details, 0,sizeof(command_details_t));
     printf("%d\n", argc);
-    me.key = argv[1]; 
-    me.IP = argv[2];
-    me.PORT = argv[3]; 
+    me.key= strdup(argv[1]);
+    me.IP= strdup(argv[2]);
+    me.PORT= strdup(argv[3]);
+    
     valid_IP_nd_port(me.IP, me.PORT,&valid_ip, &valid_port);
     if (valid_ip && valid_port){
         printf("%s\n",me.key );   
@@ -68,24 +88,25 @@ int main(int argc, char *argv[])
     }
     else printf("IP or Port provided is not valid");
     int command; 
-    char fcommand[99];
+    char* fcommand=(char*) malloc(sizeof(char) *100);
     
-    get_info_from_client(&command, fcommand);
-  
+   get_info_from_client(&command, fcommand);
+    printf("\n\n  %s\n", fcommand);
     if (command == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
-         printf("deu\n");  
+        new(&me, &succ,&pred);
     }
         
-    else if (command =='b' ){
+    else if (command =='b' ){/*enters the ring knowing only one random node*/
 
     }
         
-    else if (command == 'p' ){
+    else if (command == 'p' ){/*enters the ring know it's pred_key*/
 
     }
         
-    else if ( command =='c' ){
-
+    else if ( command =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/ 
+        /*use strtok to split str into key/ip/port*/ 
+        split_command(fcommand,&command_details);/*need to add a checker for valid command so it can exit nicely*/
     }
         
     else if( command == 'd' /*'e'*/){}/*problema porque e é short form para exit && echord prof tem que mudar*/
@@ -110,50 +131,5 @@ int main(int argc, char *argv[])
         /*insert some stuff saying invalid command*/
     }
         
-  
-    //Var declaration
-   /*
-   
-   
-    char *adress_keyboard= argv[1];// gets address from the function call as an argument
-    int sock_fd , condition, key = -1;      
-    int m;
-   
-    struct sockaddr_in server_addr;
-    bool sucess_connect = true;
-    criar_socket(&sock_fd);
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_p||t = htons(SOCK_PORT);
-    if( inet_pton(AF_INET, adress_keyboard, &server_addr.sin_addr) < 1){
-        //inet_pton - convert IPv4 and IPv6 addresses from text to binary f||m
-		printf("no valid address{} \n");
-		exit(-1);
-	}
-    
-    // send connection message
-    m = 0;  //connect;
-    sendto(sock_fd, &m, sizeof(int), 0,
-          (const struct sockaddr *)&server_addr, sizeof(server_addr)); //send the connection message to the server
-    
-   
-        recv(sock_fd, &m, sizeof(m), 0);// recieve message from the server
-      
-        
-        
-           // key = wgetch(my_win);// gets key from user
-                m = 1; // disconnect message
-                sendto(sock_fd, &m, sizeof(int), 0,
-                    (const struct sockaddr *)&server_addr, sizeof(server_addr));
-                close(sock_fd);// closes the socket
-                return 0;
-            
-        sendto(sock_fd, &m, sizeof(int), 0,
-                (const struct sockaddr *)&server_addr, sizeof(server_addr)); //send the move ball message
-       
-    
-   
-    close(sock_fd);// closes the socket
-    
-    */
     return 0;    
 }
