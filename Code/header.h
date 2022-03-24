@@ -1,3 +1,4 @@
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -16,8 +17,14 @@
 #define SA struct sockaddr
 #define SA_in struct sockaddr_in
 typedef struct {
-    /*struct sockaddr_in;*/
+    
     char* key;
     char* IP;
     char* PORT;
-} node,command_details_t;
+} node;
+typedef struct {
+    char * command;
+    char* key;
+    char* IP;
+    char* PORT;
+}command_details_t;

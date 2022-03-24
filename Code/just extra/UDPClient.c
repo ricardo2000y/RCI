@@ -30,12 +30,12 @@ int main(void)
     hints.ai_family=AF_INET;//IPv4
     hints.ai_socktype=SOCK_DGRAM;//UDP socket
 
-    errcode=getaddrinfo("127.0.0.1",PORT,&hints,&res);
+    errcode=getaddrinfo("localhost",PORT,&hints,&res);
     if(errcode!=0)/*error*/exit(1);
 
-    n=sendto(fd,"mensagem\n",n,0,(struct sockaddr*)&addr, addrlen);
+    n=sendto(fd,"mensagem\n",n,0,(struct sockaddr*)&addr,addrlen);
         if(n==-1)/*error*/exit(1);
-    addrlen= sizeof(addr);
+    
     n=recvfrom(fd,buffer,128,0,(struct sockaddr*)&addr,&addrlen);
         if(n==-1)/*error*/exit(1);
     write(1,"recieved\n",10); write(1,buffer,n);// falta mudar aqui

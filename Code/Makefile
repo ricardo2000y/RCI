@@ -17,7 +17,7 @@ OBJS_CTRASH = $(addprefix , $(C_TRASH))
 SO_CTRASH = $(addprefix , $(C_TRASH))
 
 # Nomes para os executaveis 
-RING_NAME = ring.proj
+RING_NAME = ring
 
 PROG_NAME = $(RING_NAME) 
 # Nomes para as fontes e objetos 

@@ -37,17 +37,17 @@ int main(int argc, char* argv[])
 	int sockfd, connfd;
 	SA_in servaddr, cli;
 	if (argc != 4) {
-        printf("to run client supply ring key, IP and port, separated by a single space \n");
+        printf("To run client supply ring key, IP and port, separated by a single space \n");
         exit(0);
     } 
 	// socket create and verification
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
-		printf("socket creation failed...\n");
+		printf("Socket creation failed.\n");
 		exit(0);
 	}
 	else
-		printf("Socket successfully created..\n");
+		printf("Socket successfully created.\n");
 	bzero(&servaddr, sizeof(servaddr));
 
 	// assign socket
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 	if (inet_pton( AF_INET, argv[2], & servaddr.sin_addr) < 1) {
 		//inet_pton - convert IPv4 and IPv6 addresses from text to binary form 
 		// returns 0 if given adress isn't valid 
-		printf("adress not valid: \n");
+		printf("Adress not valid.\n");
 		exit(-1);
   	}
 	int port=strtol(argv[3], NULL, 10);
@@ -64,15 +64,18 @@ int main(int argc, char* argv[])
 
 	// connect the client socket to server socket
 	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
-		printf("connection with the server failed...\n");
+		printf("Connection with the server failed.\n");
 		exit(0);
 	}
 	else
-		printf("connected to the server..\n");
+		printf("Connected to the server.\n");
 
 	// function for chat
-	func(sockfd,0);
-	func(sockfd,1);
+	while(1){
+		func(sockfd,0);
+		func(sockfd,1);
+	}
+	
 
 	// close the socket
 	close(sockfd);
