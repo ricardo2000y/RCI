@@ -8,7 +8,7 @@
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
-
+#define max(A,B) ((A)>=(B)?(A):(B))
 // Function designed for chat between client and server.
 void func(int connfd)
 {
@@ -41,9 +41,12 @@ void func(int connfd)
 // Driver function
 int main()
 {
-	int sockfd, connfd;
+	int sockfd, connfd, newsockfd, afd=0, maxfd, counter, n;
 	socklen_t len;
 	struct sockaddr_in servaddr, cli;
+	fd_set rfds;
+	enum {idle,busy} state;
+	char buff[MAX];
 
 	// socket create and verification
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -77,6 +80,79 @@ int main()
 		printf("Server listening.\n");
 	len = sizeof(cli);
 
+//! Codigo select
+
+	state = idle;
+	while (1) {
+
+		FD_ZERO(&rfds);
+		switch(state){
+			case idle: 
+				FD_SET(sockfd, &rfds); 
+				maxfd = sockfd; 
+				break;
+			case busy: 
+				FD_SET(sockfd, &rfds); 
+				FD_SET(afd, &rfds); 
+				maxfd = max(sockfd, afd); 
+				break;
+		}
+
+		//number of file descriptors ready
+		//select blocks until one of the file descriptors in rfds is ready to read
+		counter = select(maxfd+1, &rfds, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
+		
+		if(counter<=0){
+			printf("There are no files ready to read.\n");
+			exit(1);
+		}
+
+		for(;counter;--counter){
+			switch(state){
+				case idle: 
+					if(FD_ISSET(sockfd,&rfds)) {
+						FD_CLR(sockfd,&rfds);
+						len = sizeof(servaddr);
+						
+						if((newsockfd=accept(sockfd,(SA*)&servaddr,&len))==-1){
+							printf("Server accept failed.\n");
+							exit(1);
+						}
+						
+						afd = newsockfd;
+						state = busy;
+					}
+					break;
+				case busy:
+					if(FD_ISSET(sockfd, &rfds)){
+						FD_CLR(sockfd, &rfds);
+						if((newsockfd = accept(sockfd, (SA*)&servaddr, &len)) == -1){
+							printf("Server accept failed.\n");
+							exit(1);
+						}
+						write(newsockfd,"Busy\n",sizeof("Busy\n"));
+						close(newsockfd);
+					
+					} else if(FD_ISSET(afd, &rfds)){
+						FD_CLR(afd, &rfds);
+						if((n = read(afd, buff, MAX)) != 0){
+							if(n == -1){
+								printf("Reading error.\n");
+								exit(1);
+							}
+							write(afd,buff,sizeof(buff));
+						}else{
+							close(afd);
+							state = idle;
+						}
+
+					}
+					break;		
+			}
+		}
+	}
+	
+/*
 	// Accept the data packet from client and verification
 	connfd = accept(sockfd, (SA*)&cli, &len);
 	if (connfd < 0) {
@@ -91,7 +167,7 @@ int main()
 		func(connfd);
 	}
 	
-
+*/
 	// After chatting close the socket
 	close(sockfd);
 }
