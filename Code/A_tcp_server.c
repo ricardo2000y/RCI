@@ -41,19 +41,10 @@ void func(int connfd)
 	
 }
 
-// Driver function
-int main()
-{
-	int sockfd, connfd, newsockfd, afd=0, maxfd, counter, n;
-	socklen_t len;
-	SA_in servaddr, cli;
-	fd_set rfds;
-	enum {idle,busy} state;
-	char buff[MAX];
-
-	// socket create and verification
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
+void  init_tcp_server(int *listen_fd){
+	SA_in servaddr;
+	*listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (*listen_fd == -1) {
 		printf("Socket creation failed.\n");
 		exit(0);
 	}
@@ -67,7 +58,7 @@ int main()
 	servaddr.sin_port = htons(PORT);
 
 	// Binding newly created socket to given IP and verification
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+	if ((bind(*listen_fd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
 		printf("Socket bind failed.\n");
 		exit(0);
 	}
@@ -75,13 +66,28 @@ int main()
 		printf("Socket successfully binded.\n");
 
 	// Now server is ready to listen and verification
-	if ((listen(sockfd, 5)) != 0) {
+	if ((listen(*listen_fd, 5)) != 0) {
 		printf("Listen failed.\n");
 		exit(0);
 	}
 	else
 		printf("Server listening.\n");
-	len = sizeof(cli);
+}
+
+// Driver function
+
+int main()
+{
+	int listen_fd, connfd, newsockfd, tcp_fd=0, maxfd, counter, n;
+	socklen_t len;
+	SA_in cli;
+	fd_set rfds;
+	enum {idle,busy} state;
+	char buff[MAX];
+	//int listen_fd;
+	init_tcp_server(&listen_fd);
+	// socket create and verification
+	len = sizeof(SA_in);
 
 //! Codigo select
 
@@ -91,13 +97,13 @@ int main()
 		FD_ZERO(&rfds);
 		switch(state){
 			case idle: 
-				FD_SET(sockfd, &rfds);
-				maxfd = sockfd; 
+				FD_SET(listen_fd, &rfds);
+				maxfd = listen_fd; 
 				break;
 			case busy: 
-				FD_SET(sockfd, &rfds); 
-				FD_SET(afd, &rfds); 
-				maxfd = max(sockfd, afd); 
+				FD_SET(listen_fd, &rfds); 
+				FD_SET(tcp_fd, &rfds); 
+				maxfd = max(listen_fd, tcp_fd); 
 				break;
 		}
 
@@ -113,39 +119,39 @@ int main()
 		for(;counter;--counter){
 			switch(state){
 				case idle: 
-					if(FD_ISSET(sockfd,&rfds)) {
-						FD_CLR(sockfd,&rfds);
-						len = sizeof(servaddr);
+					if(FD_ISSET(listen_fd,&rfds)) {
+						FD_CLR(listen_fd,&rfds);
+						len = sizeof(SA_in);
 						
-						if((newsockfd=accept(sockfd,(SA*)&servaddr,&len))==-1){
+						if((newsockfd=accept(listen_fd,(SA*)&cli,&len))==-1){
 							printf("Server accept failed.\n");
 							exit(1);
 						}
 						
-						afd = newsockfd;
+						tcp_fd = newsockfd;
 						state = busy;
 					}
 					break;
 				case busy:
-					if(FD_ISSET(sockfd, &rfds)){
-						FD_CLR(sockfd, &rfds);
-						if((newsockfd = accept(sockfd, (SA*)&servaddr, &len)) == -1){
+					if(FD_ISSET(listen_fd, &rfds)){
+						FD_CLR(listen_fd, &rfds);
+						if((newsockfd = accept(listen_fd, (SA*)&cli, &len)) == -1){
 							printf("Server accept failed.\n");
 							exit(1);
 						}
 						write(newsockfd,"Busy\n",sizeof("Busy\n"));
 						close(newsockfd);
 					
-					} else if(FD_ISSET(afd, &rfds)){
-						FD_CLR(afd, &rfds);
-						if((n = read(afd, buff, MAX)) != 0){
+					} else if(FD_ISSET(tcp_fd, &rfds)){
+						FD_CLR(tcp_fd, &rfds);
+						if((n = read(tcp_fd, buff, MAX)) != 0){
 							if(n == -1){
 								printf("Reading error.\n");
 								exit(1);
 							}
-							write(afd,buff,sizeof(buff));
+							write(tcp_fd,buff,sizeof(buff));
 						}else{
-							close(afd);
+							close(tcp_fd);
 							state = idle;
 						}
 
@@ -157,7 +163,7 @@ int main()
 	
 /*
 	// Accept the data packet from client and verification
-	connfd = accept(sockfd, (SA*)&cli, &len);
+	connfd = accept(listen_fd, (SA*)&cli, &len);
 	if (connfd < 0) {
 		printf("Server accept failed.\n");
 		exit(0);
@@ -172,5 +178,5 @@ int main()
 	
 */
 	// After chatting close the socket
-	close(sockfd);
+	close(listen_fd);
 }

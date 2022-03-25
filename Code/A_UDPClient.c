@@ -10,6 +10,7 @@
    
 #define PORT     8080
 #define MAXLINE 1024
+#define SA_in struct sockaddr_in
 
 void func(int sockfd, int mode,struct sockaddr_in *servaddr){
 	char buff[MAXLINE];
@@ -36,27 +37,41 @@ void func(int sockfd, int mode,struct sockaddr_in *servaddr){
     }
     
 }
-// Driver code
-int main() {
-    int sockfd;
-    char buffer[MAXLINE];
-    char *hello = "Hello from client";
-    struct sockaddr_in     servaddr;
-   
-    // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+
+void init_udp_client(int *sockfd,SA_in*servaddr, char** argv/*aqui addiciona-se a info do server*/){
+     // Creating socket file descriptor
+    in_addr_t  ip;
+    if ( (*sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
-   
-    memset(&servaddr, 0, sizeof(servaddr));
-       
     // Filling server information
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(PORT);
-    inet_pton( AF_INET, "127.0.0.1", & servaddr.sin_addr);
-    func(sockfd,0,&servaddr);
-    func(sockfd,1,&servaddr);
+    servaddr->sin_family = AF_INET;
+    int port = strtol(argv[3], NULL, 10);
+    servaddr->sin_port = htons(port);
+
+    inet_pton( AF_INET, argv[2], (in_addr_t*) &servaddr->sin_addr.s_addr );
+    
+}
+
+// Driver code
+int main(int argc, char* argv[]) {
+    if (argc != 4) {
+        printf("to run client supply ring key, IP and port, separated by a single space \n");
+        exit(0);
+    } 
+    int sockfd;
+    char buffer[MAXLINE];
+    char *hello = "Hello from client";
+    //struct sockaddr_in     servaddr;
+    SA_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    init_udp_client(&sockfd,&servaddr, argv);
+    while(1){
+        func(sockfd,0,&servaddr);
+        func(sockfd,1,&servaddr);
+    }
     close(sockfd);
     return 0;
 }
+    

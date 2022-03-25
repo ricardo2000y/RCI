@@ -27,9 +27,9 @@ FD_SET(listenfd,&mask);
 /*
 char output[50];
 int length;
-int n;
+int n;*/
 //* split string into x commands using the split_str_nd_copy_to_new_location function string is the command recieved by tcp/udp
-str = strdup(message);
+/*str = strdup(message);
 command_details->command=split_str_nd_copy_to_new_location(&str);
 * enought times to make it for the full command
 ? or maybe just re-use the command to send message have to check here
@@ -74,7 +74,7 @@ void criar_socket(int *sock_fd, bool mode){
 void get_info_from_client( char* fcommand){
     size_t len = 100;
     getline(&fcommand,&len,stdin); // * gets a full line until '\n' is met
-    
+    fcommand[strlen(fcommand)-1]= '\0';
 }
 
 //* para todos os comandos fazer uma função que recebe uma string
@@ -87,7 +87,7 @@ void get_info_from_client( char* fcommand){
 //* que vai de 0 A 99
 
 //! still gonna change to make it more straight forward
-void recieve_message(int socket, bool mode, message_info_t* message_info){
+/*void recieve_message(int socket, bool mode, message_info_t* message_info){
     if(mode){// UDP
         recvfrom(socket, (const char )message_info->message, strlen(message_info->message),
              MSG_CONFIRM, (const struct sockaddr *) &message_info->addr,  &message_info->addr_len);
@@ -101,10 +101,10 @@ void recieve_message(int socket, bool mode, message_info_t* message_info){
 
     }
     //? need to check if should already split the string to acess commands here/ destination etc
-}
-
-void send_message (bool mode, char* message, node destinatario, int socket){/*mode is bool*/
-    //* extrair  address no modo de UDP caso contrário não é preciso...
+}*/
+/*
+void send_message (bool mode, char* message, node destinatario, int socket){
+    // * extrair  address no modo de UDP caso contrário não é preciso...
     if (mode ){//UDP
         //!from here
         //socklen_t len = sizeof(*servaddr);
@@ -127,7 +127,7 @@ void send_message (bool mode, char* message, node destinatario, int socket){/*mo
     }
 
 }
-
+*/
 //!^ still gonna change to make it more stright forward
 
 
@@ -287,11 +287,65 @@ void start_routine(node* me, node*pred, node* succ,command_details_t* command_de
 //initializes the mask with the req fd's
 void mask_init(fd_set *mask_copy,int udp_fd,int listen_fd,int tcp_fd,int chord_fd){
     FD_SET(0,mask_copy);
-    FD_SET(listen_fd, mask_copy);
-    FD_SET(udp_fd, mask_copy);
-    FD_SET(tcp_fd, mask_copy);
-    FD_SET(chord_fd, mask_copy);   
+    if(listen_fd) FD_SET(listen_fd, mask_copy);
+    if(udp_fd)FD_SET(udp_fd, mask_copy);
+    if(tcp_fd)FD_SET(tcp_fd, mask_copy);
+    if(chord_fd)FD_SET(chord_fd, mask_copy);   
 }
+
+void  init_tcp_server(int *listen_fd, int PORT){
+	SA_in servaddr;
+	*listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (*listen_fd == -1) {
+		printf("Socket creation failed.\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created.\n");
+	bzero(&servaddr, sizeof(servaddr));
+
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);//! mandar por argumento
+
+	// Binding newly created socket to given IP and verification
+	if ((bind(*listen_fd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+		printf("Socket bind failed.\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully binded.\n");
+
+	// Now server is ready to listen and verification
+	if ((listen(*listen_fd, 5)) != 0) {
+		printf("Listen failed.\n");
+		exit(0);
+	}
+	else
+		printf("Server listening.\n");
+}
+
+void  init_udp_server(int *udp_fd, int PORT){
+	SA_in servaddr;
+// Creating socket file descriptor
+    if ( (*udp_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+       
+    // Filling server information
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(PORT);//! mandar por argumento
+       
+    // Bind the socket with the server address
+    if ( bind(*udp_fd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 ){
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -302,28 +356,32 @@ int main(int argc, char *argv[])
     // VAR INIT
     fd_set mask, mask_copy;
     FD_ZERO(&mask);
-    int udp_fd=0, listen_fd=0,tcp_fd=0,maxfd=0,chord_fd=0, counter;
+    int udp_fd=0, listen_fd=0,tcp_fd=0,maxfd=0,chord_fd=0,port/*,counter*/;
     time_t entered_ring= time(NULL);
     node me, pred,succ;
     node * chord = NULL;
     command_details_t command_details;
     bool in_a_ring =false;
     char* fcommand=(char*) calloc(1,sizeof(char) *100);
+    SA_in tcp_client, udp_client;
+    //todo mudar variaveis para definitivas no tpc e udp
+    char buff[100];
+    int n;
+    socklen_t len = sizeof(SA_in);
     // VAR INIT
     start_routine(&me,&pred,&succ,&command_details,argv);
-    mask_init(&mask_copy,udp_fd,listen_fd,tcp_fd,chord_fd);
+    port = strtol(me.PORT, NULL, 10);
+    init_tcp_server(&listen_fd, port);
+    init_udp_server(&udp_fd, port);
+    //!mask_init(&mask_copy,udp_fd,listen_fd,tcp_fd,chord_fd);
     for(;;){
-        /*FD_SET(0,&mask);
-        FD_SET(listen_fd, &mask);
-        FD_SET(udp_fd, &mask);
-        FD_SET(tcp_fd, &mask);
-        FD_SET(chord_fd, &mask);
-        */
+        mask_init(&mask_copy,udp_fd,listen_fd,tcp_fd,chord_fd);
         FD_ZERO(&mask);
-        mask=mask_copy;
+        mask = mask_copy;
         maxfd= max_all(udp_fd,listen_fd,tcp_fd,chord_fd);
-        counter = select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
+        /*counter =*/ select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
         if(FD_ISSET(0,&mask)){
+            FD_CLR(0, &mask_copy);
             get_info_from_client( fcommand);
             if (*fcommand == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
                 if(!in_a_ring){
@@ -353,9 +411,10 @@ int main(int argc, char *argv[])
             }
                 
             else if(*fcommand == 'd' /*'e'*/){//echord 
-                //close(chord_fd);
-                // free(chord);
-                // chord = NULL;
+                /*close(chord_fd);
+                free(chord);
+                chord = NULL;
+                chord_fd =0;*/
             }/*problema porque e é short form para exit && echord prof tem que mudar*/
                 
             else if(*fcommand =='s' ){// show current status
@@ -377,7 +436,10 @@ int main(int argc, char *argv[])
             }
 
             else if(*fcommand =='e' ){// exit
+                if (chord_fd) close(chord_fd);
                 free(chord);
+                close(listen_fd);
+                close(udp_fd);
                 exit(0);
                 //exit => close all sockets and return 0
             }/*problema porque e é short form para exit && echord prof tem que mudar*/
@@ -386,6 +448,44 @@ int main(int argc, char *argv[])
             printf("Command given, \" %s\",  is not valid.\n", fcommand);
             }
         }
+        else if(FD_ISSET(listen_fd,&mask)){
+            FD_CLR(listen_fd, &mask_copy);
+            tcp_fd = accept(listen_fd, (SA*)&tcp_client, &len);
+            if (tcp_fd < 0) {
+                printf("Server accept failed.\n");
+                exit(0);
+            }
+        }    
+        else if(FD_ISSET(tcp_fd, &mask)){
+            
+            FD_CLR(tcp_fd, &mask_copy);
+            if((n = read(tcp_fd, buff, 100)) != 0){
+                if(n == -1){
+                    printf("Reading error.\n");
+                    exit(1);
+                }
+                printf("%s\n", buff);
+                write(tcp_fd,buff,sizeof(buff));
+            }
+
+            close(tcp_fd);
+            tcp_fd = 0;
+        }
+        else if(FD_ISSET(udp_fd,&mask)){
+            FD_CLR(udp_fd, &mask_copy);
+            FD_CLR(tcp_fd, &mask);
+            static int i =0;
+            n = recvfrom(udp_fd, (char *)buff, 100, 
+                MSG_WAITALL, ( struct sockaddr *) &udp_client,
+                &len);
+            buff[n] = '\0';
+            printf("Client : %s\n", buff);
+            sendto(udp_fd, "o server recebeu", strlen("o server recebeu"), 
+                MSG_CONFIRM, (const struct sockaddr *) &udp_client,
+                    len);
+            printf("Hello message sent%d.\n", i++); 
+        }    
     }
     return 0;    
 }
+

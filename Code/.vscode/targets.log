@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Mar 25 16:13:05 2022
+# Make data base, printed on Fri Mar 25 23:28:05 2022
 
 # Variables
 
@@ -59,7 +59,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-997768da-2850-43a4-9e03-5d9ab80babf6.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-82277e95-6632-4e29-8d63-3b8947826ccc.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -79,7 +79,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/168_interop
+WSL_INTEROP = /run/WSL/12_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -179,9 +179,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2080, inode 35736): 13 files, no impossibilities.
+# . (device 2080, inode 35736): 19 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -269,13 +269,13 @@ cleanall: clean cleanExe
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 23 / storage = 213 B / avg = 9 B
-# current buf: size = 8162 B / used = 213 B / count = 23 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 29 / storage = 270 B / avg = 9 B
+# current buf: size = 8162 B / used = 270 B / count = 29 / avg = 9 B
 
-# strcache performance: lookups = 46 / hit rate = 50%
+# strcache performance: lookups = 52 / hit rate = 44%
 # hash-table stats:
-# Load=23/8192=0%, Rehash=0, Collisions=1/46=2%
-# Finished Make data base on Fri Mar 25 16:13:05 2022
+# Load=29/8192=0%, Rehash=0, Collisions=1/52=2%
+# Finished Make data base on Fri Mar 25 23:28:05 2022
 
  
 make: *** No rule to make target 'all'.  Stop.
