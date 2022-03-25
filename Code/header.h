@@ -11,6 +11,8 @@
 #include <arpa/inet.h>
 #include <stdbool.h> 
 #include <stdio.h>
+#include <sys/select.h>
+#include <time.h>
 
 #define MAX_KEY 32
 #define SOCK_PORT 6969
@@ -24,7 +26,15 @@ typedef struct {
 } node;
 typedef struct {
     char * command;
-    char* key;
-    char* IP;
-    char* PORT;
+    char * n;
+    char * searched_key;
+    char * key;
+    char * IP;
+    char * PORT;
 }command_details_t;
+
+typedef struct{
+    char message[100];
+    SA_in addr;
+    socklen_t addr_len;
+}message_info_t;

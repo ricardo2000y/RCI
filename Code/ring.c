@@ -1,36 +1,59 @@
 
 #include "header.h"
+
+
 // types of comments
 // !
 // ?
 // TODO:
 // // 
 // *
-//! ver aqui info relevante
-//* para todos os comandos fazer uma função que recebe uma string
-//* qqr e a manda corretamente no canal tcp/udp necessário
-//* chamada da func será algo tipo
-//* communication(mode, message, (node)destinatario, socket) em que mode indica tcp ou UDP
-//* 
-//* dentro há de ter um static counter//
-//* que vai de 0 A 99
-//! ^^^^
+
+
+//!reminder to always check for bugs before futher development
+//TODO0:implementar select
+// implica implementar pelo menos tcp código escrito de forma independente ao ring para já
+// select usa um mascara do tipo
+/*fd_set mask;
+FD_ZERO(&mask);
+FD_SET(0,&mask);// stdin
+FD_SET(listenfd,&mask);
+*/
+//? para bentry têm que ser feito o store do address que contactou (por causa das chords)
+
 //TODO1: pesquisa de chave mensagens usadas 
 //*FND k n i i.IP i.port e RSP k n i i.IP i.port
+/*
+char output[50];
+int length;
+int n;
+//* split string into x commands using the split_str_nd_copy_to_new_location function string is the command recieved by tcp/udp
+str = strdup(message);
+command_details->command=split_str_nd_copy_to_new_location(&str);
+* enought times to make it for the full command
+? or maybe just re-use the command to send message have to check here
+
+length = sprintf(output, "%s %d %s %s %d\n", "FND",command.searched_key, command.n, command.key,command.IP, command.PORT);
+printf("%s",output);
+printf("%s",output);
+return 0;
+*/
 //* onde k é o procurado// destinatario
 //* n número de sequencia 
 //* i i.ip i.port // info de quem iniciou a procura/resposta
 //* se tcp meter \n no final da string, se UDP responder com ACK
-
+// 1 2 3 4 5 6 
 //TODO2: saída e entrada de um  nó
 //* PRED pred pred.IP pred.port\n ///de me para succ
 //* SELF i i.ip i.port\n ///de me para pred
-
+// 1 2 3 4
 //TODO3:descoberta de posição no anel
-//*EFND (udp) Realizado aquando da bentry
+//*EFND k (udp) Realizado aquando da bentry
 //* Epred pred pred.ip pred.port
 //* ACK
-
+// recieves 2 arguments
+// starts a find with 6 arguments 
+//todo4: implement the code for all the ^actions that converts the info into a string using the following code as eg.
 
 
 // creates the socket to with the corect type (true = SOCK_DGRAM= UDP false = SOCK_STREAM=TCP) and checks if the creation was sucessful 
@@ -51,13 +74,94 @@ void get_info_from_client( char* fcommand){
     fcommand[strlen(fcommand)-1] ='\0';// * replaces the '\n' by a '\0' 
 }
 
+//* para todos os comandos fazer uma função que recebe uma string
+//* qqr e a manda corretamente no canal tcp/udp necessário
+//* chamada da func será algo tipo
+//* send_message(mode, message, (node)destinatario, socket) em que mode indica tcp ou UDP
+//* 
+//? fora do send 
+//* ter um static counter 
+//* que vai de 0 A 99
+
+//! still gonna change to make it more straight forward
+void recieve_message(int socket, bool mode, message_info_t* message_info){
+    if(mode){// UDP
+        recvfrom(socket, (const char )message_info->message, strlen(message_info->message),
+             MSG_CONFIRM, (const struct sockaddr *) &message_info->addr,  &message_info->addr_len);
+        sendto(socket, "ACK", strlen("ACK"),
+             MSG_CONFIRM, (const struct sockaddr *) &message_info->addr,  message_info->addr_len);
+    }
+    else{
+        // read the message from client and copy it in message
+        read(socket, message_info->message, sizeof(message_info->message));
+
+    }
+    //? need to check if should already split the string to acess commands here/ destination etc
+}
+
+void send_message (bool mode, char* message, node destinatario, int socket){/*mode is bool*/
+    //* extrair  address no modo de UDP caso contrário não é preciso...
+    if (mode ){//UDP
+        //!from here
+        //socklen_t len = sizeof(*servaddr);
+        struct sockaddr_in  addr;       
+        // Filling server information
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(destinatario.PORT);
+        inet_pton( AF_INET, destinatario.IP, & addr.sin_addr);
+        socklen_t len = sizeof(addr);
+        //?message[strlen(message) -1] ='\0'; 
+        sendto(socket, (const char )message, strlen(*message),
+             MSG_CONFIRM, (const struct sockaddr *) &addr,  len);
+        //TODO: meter aqui um recv ou recvfrom e verificar se recebeu ACK caso não receba em 1 segundo reenvia a mensagem
+
+        //! till here
+    }
+    else{// TCP
+        
+        write(socket,message,sizeof(message));
+    }
+
+}
+
+//!^ still gonna change to make it more stright forward
+
+
+//prints the current status of the client with the relevant node/ring information 
+void show_status(bool in_a_ring, node me, node succ, node pred, node* chord,time_t uptime){
+    system("clear");
+    printf("%-15s\t%-15s\t%-15s\n\n"," "," ","STATUS");
+    
+    printf("%-15s\t%-15s\t%-15s\t%-15s\n","     ", "KEY","IP","PORT");
+    printf("mine:       \t%-15s\t%-15s\t%-15s\n",me.key , me.IP,me.PORT); 
+    if(in_a_ring){
+        printf("sucessor:   \t%-15s\t%-15s\t%-15s\n",succ.key , succ.IP,succ.PORT);
+        printf("predecessor:\t%-15s\t%-15s\t%-15s\n",pred.key , pred.IP,pred.PORT);
+        if(chord !=NULL) printf("atalho:\t%-15s\t%-15s\t%-15s\n",chord->key , chord->IP,chord->PORT);
+        printf("--------------------------------------------------------");
+        printf("\nBeen in the ring for:%ld minutes and %ld seconds\n" , uptime/60,uptime%60);
+    }
+    
+    if(!in_a_ring){
+            printf("--------------------------------------------------------");
+        printf("\nNot in a ring\n");
+    }
+    else if(strcmp(me.key, succ.key)==0){
+        printf("\n1 node(me) in the ring\n");
+    }else {
+        if(strcmp(succ.key,pred.key)==0){
+            printf("\n2 nodes in the ring\n");
+        }
+        else printf("\n3 or more, nodes in the ring\n");
+    }
+}
+
 // checks the distance between the node and another node, returns the distance value
 int check_distance(char* my_key, char* dest_key){
     int my_key_n = strtol(my_key, NULL, 10);// * converts the my_key str into decimal
     int dest_key_n = strtol(dest_key, NULL, 10);// * converts the dest_key str into decimal
     int result = (dest_key_n-my_key_n)%MAX_KEY;// * determines the distance between the keys formula= (n-j)mode 32 
     if (result <0) result += MAX_KEY; //* if the distance is negative adds 32.
-    
     return result;//* returns the distance value
 }
 
@@ -66,7 +170,7 @@ int check_distance(char* my_key, char* dest_key){
 bool valid_IP_nd_port(char* IP, char* PORT){
     bool port_validator, ip_validator;// * control variables 
     int  check;
-    void * ipvalidation;
+    void * ipvalidation=(void*) malloc(sizeof(IP));
 
     ip_validator = (bool)inet_pton( AF_INET, IP, ipvalidation );// * inetpton returns 0 incase the given ip is not valid 
     //! might not be worth to do at least for tcp/udp connections (because when getting the adress info inet_pton will be used )
@@ -85,7 +189,7 @@ void copy_node_info(node *origin, node *copy){
 }
 
 //routine for creating a new node, has to initialize the successor and predecessor nodes
-// TODO: add more stuff need to check what is missing for new
+// TODO: add more stuff need to check what is missing for new (pbbly had stuff to the select mask (the new sockets from the udp/tcp(listen_sd) servers))
 // * most likely start a tcp/udp server listening to possible connections 
 void new(node *me, node *pred, node *succ){
     copy_node_info(me,pred);// * initialize predecessor = me
@@ -94,30 +198,33 @@ void new(node *me, node *pred, node *succ){
 }
 
 // split the given string and stores it on a new string
-split_str_nd_copy_to_new_location(char* str_to_split,char *str_to_save){
+char* split_str_nd_copy_to_new_location(char** str_to_split){
     char* splitted;
-    splitted = strsep(&str_to_split, " "); 
+    char *str_to_save;
+    splitted = strsep(str_to_split, " "); 
     if (splitted == NULL){// do routine for bad command 
-        printf("%s given is incomplete program will terminate" ,"command");
+        printf("%s given is incomplete program will terminate\n" ,"command");
         exit(0);
     }
-    str_to_save=strdup (splitted);
+
+    str_to_save = strdup (splitted);
+    return str_to_save;
 }
 
 //!fucking up on the ip_nd_port_check 
 // splits the command given by user saving it in a structure while checking if the command is valid
 void split_command(char * fcommand, command_details_t* command_details){
-    char* splitted=NULL;
+    //char* splitted=NULL;
     char* str=NULL;
-    bool valid;
+    //bool valid;
     //? malloc of the strings inside command is needed or not? 
     str=(char*) malloc(sizeof(char)*100 );
     str = strdup(fcommand);
     //! still untested from here to:
-    split_str_nd_copy_to_new_location(str,command_details->command);
-    split_str_nd_copy_to_new_location(str,command_details->key);
-    split_str_nd_copy_to_new_location(str,command_details->IP);
-    split_str_nd_copy_to_new_location(str,command_details->PORT);
+    command_details->command=split_str_nd_copy_to_new_location(&str);
+    command_details->key=split_str_nd_copy_to_new_location(&str);
+    command_details->IP=split_str_nd_copy_to_new_location(&str);
+    command_details->PORT=split_str_nd_copy_to_new_location(&str);
     //! till here
     if(str != NULL){// * do routine for bad command 
         printf("%s given is too big program will terminate", fcommand);
@@ -159,6 +266,7 @@ int main(int argc, char *argv[])
         printf("to run client supply ring key, IP and port, separated by a single space \n");
         exit(0);
     } 
+    time_t entered_ring= time(NULL);
     node me, pred,succ;
     node * chord = NULL;
     command_details_t command_details;
@@ -176,12 +284,14 @@ int main(int argc, char *argv[])
     else printf("IP or Port provided is not valid");
     char* fcommand=(char*) calloc(1,sizeof(char) *100);
    
-    do{//TODO: when implemmenting the select this part will be on the mask part for stdin
+    do{//TODO: when implemmenting the select this part will be on the mask part for stdin(the do while loop is not needed then)
         get_info_from_client( fcommand);
         if (*fcommand == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
             if(!in_a_ring){
                 in_a_ring =true; 
+                entered_ring = time(NULL);
                 new(&me, &succ,&pred);
+                
             }
             else printf("Already in a ring u dumbass\n");
         }
@@ -195,7 +305,7 @@ int main(int argc, char *argv[])
         }
             
         else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/ 
-            /*use strtok to split str into key/ip/port*/ 
+            
             split_command(fcommand,&command_details);/*need to add a checker for valid command so it can exit nicely*/
             //chord = (node*)malloc(sizeof(node));
             // memset(&chord, 0,sizeof(node));
@@ -210,18 +320,15 @@ int main(int argc, char *argv[])
         }/*problema porque e é short form para exit && echord prof tem que mudar*/
             
         else if(*fcommand =='s' ){// show current status
-                printf("%-15s\t%-15s\t%-15s\n\n"," "," ","STATUS");
-                printf("%-15s\t%-15s\t%-15s\t%-15s\n","     ", "KEY","IP","PORT");
-                printf("mine:       \t%-15s\t%-15s\t%-15s\n",me.key , me.IP,me.PORT); 
-                printf("sucessor:   \t%-15s\t%-15s\t%-15s\n",succ.key , succ.IP,succ.PORT);
-                printf("predecessor:\t%-15s\t%-15s\t%-15s\n",pred.key , pred.IP,pred.PORT);
-                if(chord !=NULL) printf("atalho:\t%-15s\t%-15s\t%-15s\n",chord->key , chord->IP,chord->PORT);
-                // adicionar info extra p.ex se está sozinho se há 2 pessoas no ring ou se há pelo menos 3(basta comparar os IP's dos node's me, succ, pred)
+                time_t uptime =time(NULL)- entered_ring;
+                // // todo tirar este codigo todo para um função para ficar com a main mais limpa/ pequena
+                //* ^done
+                show_status(in_a_ring, me,succ,pred,chord,uptime);
         }
             
         else if(*fcommand =='f' ){
             if(find_key(fcommand, me.key, succ.key)){// verifies if it is mine or not
-
+                //send_message()
             }
         }
             
@@ -232,13 +339,14 @@ int main(int argc, char *argv[])
             in_a_ring= false;
         }
 
-        /*else if(command =='e' ){
-            exit => close all sockets and return 0
-        }problema porque e é short form para exit && echord prof tem que mudar*/
+        else if(*fcommand =='e' ){
+            exit(0);
+            //exit => close all sockets and return 0
+        }/*problema porque e é short form para exit && echord prof tem que mudar*/
 
-        /*else{
-            //insert some stuff saying invalid command
-        }*/
-    } while(*fcommand !='e');
+        else{
+           printf("Command given, \" %s\",  is not valid.\n", fcommand);
+        }
+    } while(1);
     return 0;    
 }
