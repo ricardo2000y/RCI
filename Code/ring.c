@@ -74,7 +74,7 @@ void criar_socket(int *sock_fd, bool mode){
 void get_info_from_client( char* fcommand){
     size_t len = 100;
     getline(&fcommand,&len,stdin); // * gets a full line until '\n' is met
-    fcommand[strlen(fcommand)-1] ='\0';// * replaces the '\n' by a '\0' 
+    
 }
 
 //* para todos os comandos fazer uma função que recebe uma string
