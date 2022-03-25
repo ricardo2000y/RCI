@@ -5,9 +5,12 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
+
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
+#define SA_in struct sockaddr_in
 #define max(A,B) ((A)>=(B)?(A):(B))
 // Function designed for chat between client and server.
 void func(int connfd)
@@ -43,7 +46,7 @@ int main()
 {
 	int sockfd, connfd, newsockfd, afd=0, maxfd, counter, n;
 	socklen_t len;
-	struct sockaddr_in servaddr, cli;
+	SA_in servaddr, cli;
 	fd_set rfds;
 	enum {idle,busy} state;
 	char buff[MAX];
@@ -88,7 +91,7 @@ int main()
 		FD_ZERO(&rfds);
 		switch(state){
 			case idle: 
-				FD_SET(sockfd, &rfds); 
+				FD_SET(sockfd, &rfds);
 				maxfd = sockfd; 
 				break;
 			case busy: 

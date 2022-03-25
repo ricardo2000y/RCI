@@ -18,6 +18,7 @@
 FD_ZERO(&mask);
 FD_SET(0,&mask);// stdin
 FD_SET(listenfd,&mask);
+
 */
 //? para bentry têm que ser feito o store do address que contactou (por causa das chords)
 
@@ -33,7 +34,9 @@ command_details->command=split_str_nd_copy_to_new_location(&str);
 * enought times to make it for the full command
 ? or maybe just re-use the command to send message have to check here
 
-length = sprintf(output, "%s %d %s %s %d\n", "FND",command.searched_key, command.n, command.key,command.IP, command.PORT);
+length = sprintf(output, "%s %s %s %s %s %s\n", "FND",command.searched_key, command.n, command.key,command.IP, command.PORT);
+write(socket, output, length);
+
 printf("%s",output);
 printf("%s",output);
 return 0;
@@ -44,7 +47,7 @@ return 0;
 //* se tcp meter \n no final da string, se UDP responder com ACK
 // 1 2 3 4 5 6 
 //TODO2: saída e entrada de um  nó
-//* PRED pred pred.IP pred.port\n ///de me para succ
+//* PRED pred pred.IP pred.port\n ///de me para 
 //* SELF i i.ip i.port\n ///de me para pred
 // 1 2 3 4
 //TODO3:descoberta de posição no anel
@@ -69,7 +72,7 @@ void criar_socket(int *sock_fd, bool mode){
 }
 // gets line from stdin given by user
 void get_info_from_client( char* fcommand){
-    size_t len =100;
+    size_t len = 100;
     getline(&fcommand,&len,stdin); // * gets a full line until '\n' is met
     fcommand[strlen(fcommand)-1] ='\0';// * replaces the '\n' by a '\0' 
 }
@@ -95,6 +98,7 @@ void recieve_message(int socket, bool mode, message_info_t* message_info){
         // read the message from client and copy it in message
         read(socket, message_info->message, sizeof(message_info->message));
 
+
     }
     //? need to check if should already split the string to acess commands here/ destination etc
 }
@@ -110,7 +114,7 @@ void send_message (bool mode, char* message, node destinatario, int socket){/*mo
         addr.sin_port = htons(destinatario.PORT);
         inet_pton( AF_INET, destinatario.IP, & addr.sin_addr);
         socklen_t len = sizeof(addr);
-        //?message[strlen(message) -1] ='\0'; 
+        //! message[strlen(message) -1] ='\0'; 
         sendto(socket, (const char )message, strlen(*message),
              MSG_CONFIRM, (const struct sockaddr *) &addr,  len);
         //TODO: meter aqui um recv ou recvfrom e verificar se recebeu ACK caso não receba em 1 segundo reenvia a mensagem
@@ -220,12 +224,12 @@ void split_command(char * fcommand, command_details_t* command_details){
     //? malloc of the strings inside command is needed or not? 
     str=(char*) malloc(sizeof(char)*100 );
     str = strdup(fcommand);
-    //! still untested from here to:
+
     command_details->command=split_str_nd_copy_to_new_location(&str);
     command_details->key=split_str_nd_copy_to_new_location(&str);
     command_details->IP=split_str_nd_copy_to_new_location(&str);
     command_details->PORT=split_str_nd_copy_to_new_location(&str);
-    //! till here
+    
     if(str != NULL){// * do routine for bad command 
         printf("%s given is too big program will terminate", fcommand);
         exit(0);
@@ -258,7 +262,36 @@ bool find_key(char * fcommand,char* me, char* succ){
     return false;
 }
 
+// returns the max ammong given int's
+int max_all(int sock_1,int sock_2, int sock_3,int sock_4){
+    sock_1= max(sock_1,sock_2);
+    sock_1= max(sock_1,sock_3);
+    sock_1= max(sock_1,sock_4);
+    return sock_1;
+}
+//starting routine gets the argv and checks it's validity storing it in me
+void start_routine(node* me, node*pred, node* succ,command_details_t* command_details,char**argv){
+    memset(me,0,sizeof(node));
+    memset(pred, 0,sizeof(node));
+    memset(succ, 0,sizeof(node));
+    memset(command_details, 0,sizeof(command_details_t));   
+    me->key= strdup(argv[1]);
+    me->IP= strdup(argv[2]);
+    me->PORT= strdup(argv[3]);
+    if (valid_IP_nd_port(me->IP, me->PORT)){
+        printf("%s\t%s\t%s\n",me->key , me->IP,me->PORT);   
+    }
+    else printf("IP or Port provided is not valid");//* exit(0) or reenter... 
+}
 
+//initializes the mask with the req fd's
+void mask_init(fd_set *mask_copy,int udp_fd,int listen_fd,int tcp_fd,int chord_fd){
+    FD_SET(0,mask_copy);
+    FD_SET(listen_fd, mask_copy);
+    FD_SET(udp_fd, mask_copy);
+    FD_SET(tcp_fd, mask_copy);
+    FD_SET(chord_fd, mask_copy);   
+}
 
 int main(int argc, char *argv[])
 {
@@ -266,87 +299,93 @@ int main(int argc, char *argv[])
         printf("to run client supply ring key, IP and port, separated by a single space \n");
         exit(0);
     } 
+    // VAR INIT
+    fd_set mask, mask_copy;
+    FD_ZERO(&mask);
+    int udp_fd=0, listen_fd=0,tcp_fd=0,maxfd=0,chord_fd=0, counter;
     time_t entered_ring= time(NULL);
     node me, pred,succ;
     node * chord = NULL;
     command_details_t command_details;
     bool in_a_ring =false;
-    memset(&me,0,sizeof(node));
-    memset(&pred, 0,sizeof(node));
-    memset(&succ, 0,sizeof(node));
-    memset(&command_details, 0,sizeof(command_details_t));   
-    me.key= strdup(argv[1]);
-    me.IP= strdup(argv[2]);
-    me.PORT= strdup(argv[3]);
-    if (valid_IP_nd_port(me.IP, me.PORT)){
-        printf("%s\t%s\t%s\n",me.key , me.IP,me.PORT);   
-    }
-    else printf("IP or Port provided is not valid");
     char* fcommand=(char*) calloc(1,sizeof(char) *100);
-   
-    do{//TODO: when implemmenting the select this part will be on the mask part for stdin(the do while loop is not needed then)
-        get_info_from_client( fcommand);
-        if (*fcommand == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
-            if(!in_a_ring){
-                in_a_ring =true; 
-                entered_ring = time(NULL);
-                new(&me, &succ,&pred);
+    // VAR INIT
+    start_routine(&me,&pred,&succ,&command_details,argv);
+    mask_init(&mask_copy,udp_fd,listen_fd,tcp_fd,chord_fd);
+    for(;;){
+        /*FD_SET(0,&mask);
+        FD_SET(listen_fd, &mask);
+        FD_SET(udp_fd, &mask);
+        FD_SET(tcp_fd, &mask);
+        FD_SET(chord_fd, &mask);
+        */
+        FD_ZERO(&mask);
+        mask=mask_copy;
+        maxfd= max_all(udp_fd,listen_fd,tcp_fd,chord_fd);
+        counter = select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
+        if(FD_ISSET(0,&mask)){
+            get_info_from_client( fcommand);
+            if (*fcommand == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
+                if(!in_a_ring){
+                    in_a_ring =true; 
+                    entered_ring = time(NULL);
+                    new(&me, &succ,&pred);
+                    
+                }
+                else printf("Already in a ring u dumbass\n");
+            }
                 
+            else if (*fcommand =='b' ){/*enters the ring knowing only one random node*/
+                split_command(fcommand,&command_details);
             }
-            else printf("Already in a ring u dumbass\n");
-        }
-            
-        else if (*fcommand =='b' ){/*enters the ring knowing only one random node*/
-            split_command(fcommand,&command_details);
-        }
-            
-        else if (*fcommand == 'p' ){/*enters the ring know it's pred_key*/
-            split_command(fcommand,&command_details);
-        }
-            
-        else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/ 
-            
-            split_command(fcommand,&command_details);/*need to add a checker for valid command so it can exit nicely*/
-            //chord = (node*)malloc(sizeof(node));
-            // memset(&chord, 0,sizeof(node));
-            // 
+                
+            else if (*fcommand == 'p' ){/*enters the ring know it's pred_key*/
+                split_command(fcommand,&command_details);
+            }
+                
+            else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/ 
+                
+                split_command(fcommand,&command_details);/*need to add a checker for valid command so it can exit nicely*/
+                //chord = (node*)malloc(sizeof(node));
+                // memset(&chord, 0,sizeof(node));
+                // 
 
-        }
-            
-        else if(*fcommand == 'd' /*'e'*/){
-            //close(chord_fd);
-            // free(chord);
-            // chord = NULL;
-        }/*problema porque e é short form para exit && echord prof tem que mudar*/
-            
-        else if(*fcommand =='s' ){// show current status
-                time_t uptime =time(NULL)- entered_ring;
-                // // todo tirar este codigo todo para um função para ficar com a main mais limpa/ pequena
-                //* ^done
-                show_status(in_a_ring, me,succ,pred,chord,uptime);
-        }
-            
-        else if(*fcommand =='f' ){
-            if(find_key(fcommand, me.key, succ.key)){// verifies if it is mine or not
-                //send_message()
+            }
+                
+            else if(*fcommand == 'd' /*'e'*/){//echord 
+                //close(chord_fd);
+                // free(chord);
+                // chord = NULL;
+            }/*problema porque e é short form para exit && echord prof tem que mudar*/
+                
+            else if(*fcommand =='s' ){// show current status
+                    time_t uptime =time(NULL)- entered_ring;
+                    show_status(in_a_ring, me,succ,pred,chord,uptime);
+            }
+                
+            else if(*fcommand =='f' ){
+                if(find_key(fcommand, me.key, succ.key)){// verifies if it is mine or not
+                    //send_message()
+                }
+            }
+                
+            else if(*fcommand =='l'){
+                memset(&pred, 0,sizeof(node));
+                memset(&succ, 0,sizeof(node));
+                free(chord); 
+                in_a_ring= false;
+            }
+
+            else if(*fcommand =='e' ){// exit
+                free(chord);
+                exit(0);
+                //exit => close all sockets and return 0
+            }/*problema porque e é short form para exit && echord prof tem que mudar*/
+
+            else{
+            printf("Command given, \" %s\",  is not valid.\n", fcommand);
             }
         }
-            
-        else if(*fcommand =='l'){
-            memset(&pred, 0,sizeof(node));
-            memset(&succ, 0,sizeof(node));
-            free(chord); 
-            in_a_ring= false;
-        }
-
-        else if(*fcommand =='e' ){
-            exit(0);
-            //exit => close all sockets and return 0
-        }/*problema porque e é short form para exit && echord prof tem que mudar*/
-
-        else{
-           printf("Command given, \" %s\",  is not valid.\n", fcommand);
-        }
-    } while(1);
+    }
     return 0;    
 }

@@ -18,8 +18,8 @@
 #define SOCK_PORT 6969
 #define SA struct sockaddr
 #define SA_in struct sockaddr_in
-typedef struct {
-    
+#define max(A,B) ((A)>=(B)?(A):(B))
+typedef struct {  
     char* key;
     char* IP;
     char* PORT;
