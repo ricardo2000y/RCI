@@ -28,10 +28,10 @@ void func(int *sockfd, int mode, SA_in *servaddr, char** message)
 				printf("Connected to the server.\n");
 			printf("Enter the string : ");
 		}
-			write(*sockfd, *message, sizeof(*message));
+			write(*sockfd, *message, 100000);
 	}
 	else{
-		read(*sockfd, *message, sizeof(*message));
+		read(*sockfd, *message, 100000);
 		printf("From Server : %s", *message);
 		//if ((strncmp(buff, "exit", 4)) == 0) {
 		//	printf("Client Exit...\n");
@@ -66,29 +66,32 @@ void init_tcp_client(int *sockfd,SA_in*servaddr, char * port_, char*addr){
 int main(int argc, char* argv[])
 {
 
-	int *sockfd , n;
+	int sockfd , n;
 	SA_in servaddr;
-	char* buff= (char*)malloc(sizeof(char)*MAX);
+	size_t len = 100;
+	char* buff= (char*)malloc(sizeof(char)*100);
 	
 	if (argc != 4) {
         printf("To run client supply ring key, IP and port, separated by a single space \n");
         exit(0);
     } 
 	memset (&servaddr, 0,sizeof(servaddr));
-	sockfd= malloc(sizeof(int));
 	//int true = 1;
 	
 	// function for chat
 	while(1){
-		init_tcp_client(sockfd,&servaddr,argv[3],argv[2] );
+		init_tcp_client(&sockfd,&servaddr,argv[3],argv[2] );
 		n=0;
-		bzero(buff, sizeof(*buff));
-		while ((buff[n++] = getchar()) != '\n')
-			;
-		func(sockfd,0,&servaddr, &buff);
-		func(sockfd,1,&servaddr,&buff);
-		printf("%d\n",*sockfd);
-		close(*sockfd);
+		len=10000;
+		getline(&buff,&len,stdin);
+		buff[strlen(buff)-1]= '\0';
+		//bzero(buff, MAX);
+		//while ((buff[n++] = getchar()) != '\n')
+		//	;
+		func(&sockfd,0,&servaddr, &buff);
+		func(&sockfd,1,&servaddr,&buff);
+		printf("\n%d\n",sockfd);
+		close(sockfd);
 		
 		
 		
@@ -96,5 +99,5 @@ int main(int argc, char* argv[])
 	
 
 	// close the socket
-	close(*sockfd);
+	close(sockfd);
 }

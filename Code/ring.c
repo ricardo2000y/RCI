@@ -61,19 +61,10 @@ return 0;
 //todo now implement the tcp client and udp client and set up 2/3 messages to test
 
 // creates the socket to with the corect type (true = SOCK_DGRAM= UDP false = SOCK_STREAM=TCP) and checks if the creation was sucessful 
-void criar_socket(int *sock_fd, bool mode){
-    if(mode)// *true = SOCK_DGRAM= UDP false = SOCK_STREAM=TCP
-        *sock_fd = socket(AF_INET, SOCK_DGRAM, 0);   // *creates the socket
-    else  *sock_fd = socket(AF_INET, SOCK_STREAM, 0); // *creates the socket
-    if (*sock_fd == -1){                         // *checks if the creation was sucessful
-	    perror("socket{} ");   
-	    exit(-1);
-    }
 
-}
 // gets line from stdin given by user
 void get_info_from_client( char* fcommand){
-    size_t len = 100;
+    size_t len = 100000;
     getline(&fcommand,&len,stdin); // * gets a full line until '\n' is met
     fcommand[strlen(fcommand)-1]= '\0';
 }
