@@ -38,7 +38,7 @@ void func(int sockfd, int mode,struct sockaddr_in *servaddr){
     
 }
 
-void init_udp_client(int *sockfd,SA_in*servaddr, char** argv/*aqui addiciona-se a info do server*/){
+void init_udp_client(int *sockfd,SA_in*servaddr, char*port_ ,char* addr/*aqui addiciona-se a info do server*/){
      // Creating socket file descriptor
     in_addr_t  ip;
     if ( (*sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -47,10 +47,10 @@ void init_udp_client(int *sockfd,SA_in*servaddr, char** argv/*aqui addiciona-se 
     }
     // Filling server information
     servaddr->sin_family = AF_INET;
-    int port = strtol(argv[3], NULL, 10);
+    int port = strtol(port_, NULL, 10);
     servaddr->sin_port = htons(port);
 
-    inet_pton( AF_INET, argv[2], (in_addr_t*) &servaddr->sin_addr.s_addr );
+    inet_pton( AF_INET, addr, (in_addr_t*) &servaddr->sin_addr.s_addr );
     
 }
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     //struct sockaddr_in     servaddr;
     SA_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
-    init_udp_client(&sockfd,&servaddr, argv);
+    init_udp_client(&sockfd,&servaddr, argv[3],argv[2]);
     while(1){
         func(sockfd,0,&servaddr);
         func(sockfd,1,&servaddr);

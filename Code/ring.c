@@ -57,7 +57,8 @@ return 0;
 // recieves 2 arguments
 // starts a find with 6 arguments 
 //todo4: implement the code for all the ^actions that converts the info into a string using the following code as eg.
-
+//!here
+//todo now implement the tcp client and udp client and set up 2/3 messages to test
 
 // creates the socket to with the corect type (true = SOCK_DGRAM= UDP false = SOCK_STREAM=TCP) and checks if the creation was sucessful 
 void criar_socket(int *sock_fd, bool mode){
@@ -450,6 +451,8 @@ int main(int argc, char *argv[])
         }
         else if(FD_ISSET(listen_fd,&mask)){
             FD_CLR(listen_fd, &mask_copy);
+            //close(tcp_fd);
+            //tcp_fd = 0;
             tcp_fd = accept(listen_fd, (SA*)&tcp_client, &len);
             if (tcp_fd < 0) {
                 printf("Server accept failed.\n");
@@ -467,7 +470,6 @@ int main(int argc, char *argv[])
                 printf("%s\n", buff);
                 write(tcp_fd,buff,sizeof(buff));
             }
-
             close(tcp_fd);
             tcp_fd = 0;
         }
