@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
 			;
 		func(sockfd,0,&servaddr, &buff);
 		func(sockfd,1,&servaddr,&buff);
+		printf("%d\n",*sockfd);
 		close(*sockfd);
 		
 		
