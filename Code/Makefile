@@ -18,18 +18,26 @@ SO_CTRASH = $(addprefix , $(C_TRASH))
 
 # Nomes para os executaveis 
 RING_NAME = ring
-
+TCP_CLIENT_NAME = tcpclient
+UDP_CLIENT_NAME= udpclient
 PROG_NAME = $(RING_NAME) 
 # Nomes para as fontes e objetos 
 
 RING_OBJS = ring.o
 RING_SOURCES = ring.c 
 
-################################################################################
-################################################################################
-.PHONY: default  
-default: $(PROG_NAME)
+TCP_CLIENT_SOURCES = A_tcp_client.c
 
+UDP_CLIENT_SOURCES = A_UDPClient.c
+
+################################################################################
+################################################################################
+.PHONY: default  tcpclient udpclient udpc tcpc
+default: $(PROG_NAME)
+udpc: udpclient
+tcpc: tcpclient
+udpclient:$(UDP_CLIENT_NAME)
+tcpclient:$(TCP_CLIENT_NAME)
 
 ################################################################################
 # Compilacao e geracao de executaveis                               
@@ -41,6 +49,14 @@ $(RING_NAME):  $(RING_OBJS)
 
 ring.o: $(RING_SOURCES)
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
+
+$(TCP_CLIENT_NAME):  $(TCP_CLIENT_SOURCES)
+	$(CC) $(MODE)  $(CFLAGS) A_tcp_client.c -o tcpclient 
+
+$(UDP_CLIENT_NAME):  $(UDP_CLIENT_SOURCES)
+	$(CC) $(MODE)  $(CFLAGS) A_UDPClient.c -o udpclient  
+
+
 
 ################################################################################
 # limpeza de ficheiros inerentes a geracao do executavel  

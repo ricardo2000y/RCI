@@ -1,7 +1,5 @@
 
 #include "header.h"
-
-
 // types of comments
 // !
 // ?
@@ -10,19 +8,13 @@
 // *
 
 //! 
-//TODO on udp recieved messages remove the \n by default !  use strcspn(): (basicly find the position of the \n and put a \0 there somethin like:)
+//TODO on udp recieved messages remove the \n by default !  use strcspn(): (basicly find the position of the \n and put a \0 there 
 
 //!reminder to always check for bugs before futher development
 //TODO0:implementar select
 // implica implementar pelo menos tcp código escrito de forma independente ao ring para já
-// select usa um mascara do tipo
-/*fd_set mask;
-FD_ZERO(&mask);
-FD_SET(0,&mask);// stdin
-FD_SET(listenfd,&mask);
-
-*/
 //? para bentry têm que ser feito o store do address que contactou (por causa das chords)
+//* guardar num addr_bentry ou algo do genero!
 
 //TODO1: pesquisa de chave mensagens usadas 
 //*FND k n i i.IP i.port e RSP k n i i.IP i.port
@@ -62,17 +54,20 @@ return 0;
 // recieves 2 arguments
 // starts a find with 6 arguments 
 //todo4: implement the code for all the ^actions that converts the info into a string using the following code as eg.
-//!here
+
 //todo now implement the tcp client and udp client and set up 2/3 messages to test
 
 // creates the socket to with the corect type (true = SOCK_DGRAM= UDP false = SOCK_STREAM=TCP) and checks if the creation was sucessful 
 
 // gets line from stdin given by user
 void get_info_from_client( char* fcommand){
-    size_t len = 100000;
+    size_t len = 10000; //! change this size tho we still will be needing a +-  big size
     getline(&fcommand,&len,stdin); // * gets a full line until '\n' is met
     fcommand[strlen(fcommand)-1]= '\0';
 }
+
+// // asdasdasdasd
+//! pbbly to remove 
 
 //* para todos os comandos fazer uma função que recebe uma string
 //* qqr e a manda corretamente no canal tcp/udp necessário
@@ -83,7 +78,6 @@ void get_info_from_client( char* fcommand){
 //* ter um static counter 
 //* que vai de 0 A 99
 
-//! still gonna change to make it more straight forward
 /*void recieve_message(int socket, bool mode, message_info_t* message_info){
     if(mode){// UDP
         recvfrom(socket, (const char )message_info->message, strlen(message_info->message),
@@ -125,7 +119,9 @@ void send_message (bool mode, char* message, node destinatario, int socket){
 
 }
 */
-//!^ still gonna change to make it more stright forward
+
+//! pbbly to remove 
+//// dasdasdasd
 
 
 //prints the current status of the client with the relevant node/ring information 
@@ -266,6 +262,7 @@ int max_all(int sock_1,int sock_2, int sock_3,int sock_4){
     sock_1= max(sock_1,sock_4);
     return sock_1;
 }
+
 //starting routine gets the argv and checks it's validity storing it in me
 void start_routine(node* me, node*pred, node* succ,command_details_t* command_details,char**argv){
     memset(me,0,sizeof(node));
@@ -280,6 +277,7 @@ void start_routine(node* me, node*pred, node* succ,command_details_t* command_de
     }
     else printf("IP or Port provided is not valid");//* exit(0) or reenter... 
 }
+
 
 void split_FND_RSP(command_details_t* command,char **str){
     char *splitted;
@@ -358,8 +356,32 @@ int process_FND_RSP(char* buff,node me,node succ,node* chord){//? maybe pass com
     return 0;
 }
 //! here 
-void process_EFND_EPRED(bool *in_a_ring,node *pred, command_details_t *command_details){
+
+void process_EFND_EPRED(bool in_a_ring,node *pred, command_details_t *command,char* buff){
 //todo all this func is where i stopped for now 
+    char *str=strchr(buff,'\n');
+    str =strdup(buff);
+    char *splitted;
+    splitted= split_str_nd_copy_to_new_location(&str);
+    command->command= strdup(splitted);
+    if (in_a_ring){
+        if (strcmp("EFND",command->command)==0){
+           splitted= split_str_nd_copy_to_new_location(&str);
+           command->key=strdup(splitted);
+           
+       
+           //! start a search for the this key  
+        }    
+    }else if(strcmp("EPRED",command->command)==0){
+        //
+        splitted= split_str_nd_copy_to_new_location(&str);
+        pred->key=strdup(splitted);
+        splitted= split_str_nd_copy_to_new_location(&str);
+        pred->IP=strdup(splitted);
+        splitted= split_str_nd_copy_to_new_location(&str);
+        pred->PORT=strdup(splitted);
+
+    }
 }
 
 //initializes the mask with the req fd's
@@ -467,13 +489,11 @@ int main(int argc, char *argv[])
     } 
     // VAR INIT
     fd_set mask, mask_copy;
-    FD_ZERO(&mask);
-    int udp_fd=0, listen_fd=0,tcp_s_fd=0,maxfd=0,chord_fd=0,port/*,counter*/;
+    int udp_fd=0, listen_fd=0,tcp_s_fd=0,maxfd=0,chord_fd=0,port, n;
     time_t entered_ring= time(NULL);
-    node me, pred,succ, temp_node;
-    node * chord = NULL;
+    node me, pred,succ, temp_node, * chord = NULL;
     command_details_t command_details;
-    //!
+    //! tcp client test
     SA_in servaddr;
     int sockfd ;
     char* buffer= (char*)malloc(sizeof(char)*100);
@@ -484,9 +504,9 @@ int main(int argc, char *argv[])
     SA_in tcp_client, udp_client;
     //todo mudar variaveis para definitivas no tpc e udp
     char buff[100];
-    int n;
     socklen_t len = sizeof(SA_in);
     // VAR INIT
+
     start_routine(&me,&pred,&succ,&command_details,argv);
     port = strtol(me.PORT, NULL, 10);
     init_tcp_server(&listen_fd, port);
@@ -494,10 +514,10 @@ int main(int argc, char *argv[])
     //!mask_init(&mask_copy,udp_fd,listen_fd,tcp_s_fd,chord_fd);
     for(;;){
         mask_init(&mask_copy,udp_fd,listen_fd,tcp_s_fd,chord_fd);
-        FD_ZERO(&mask);
+        //FD_ZERO(&mask);
         mask = mask_copy;
         maxfd= max_all(udp_fd,listen_fd,tcp_s_fd,chord_fd);
-        /*counter =*/ select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
+        select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
         if(FD_ISSET(0,&mask)){
             FD_CLR(0, &mask_copy);
             get_info_from_client( fcommand);
@@ -579,8 +599,6 @@ int main(int argc, char *argv[])
         }
         else if(FD_ISSET(listen_fd,&mask)){
             FD_CLR(listen_fd, &mask_copy);
-            //close(tcp_s_fd);
-            //tcp_s_fd = 0;
             tcp_s_fd = accept(listen_fd, (SA*)&tcp_client, &len);
             if (tcp_s_fd < 0) {
                 printf("Server accept failed.\n");
@@ -588,7 +606,6 @@ int main(int argc, char *argv[])
             }
         }    
         else if(FD_ISSET(tcp_s_fd, &mask)){
-            
             FD_CLR(tcp_s_fd, &mask_copy);
             if((n = read(tcp_s_fd, buff, 100)) != 0){
                 if(n == -1){
@@ -626,18 +643,18 @@ int main(int argc, char *argv[])
         else if(FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
             //FD_CLR(tcp_s_fd, &mask);
-            static int i =0;
+            //static int i =0;
             n = recvfrom(udp_fd, (char *)buff, 100, 
                 MSG_WAITALL, ( struct sockaddr *) &udp_client,
                 &len);
             sendto(udp_fd, "ACK", strlen("ACK"), 
                 MSG_CONFIRM, (const struct sockaddr *) &udp_client,
                     len);
-            if((*buff='F')||(*buff='R')){
+            if((*buff=='F')||(*buff=='R')){
                 process_FND_RSP(buff,me,succ,chord);
             }
-            else if (*buff='E'){
-                process_EFND_EPRED(&in_a_ring,&pred,&command_details);
+            else if (*buff=='E'){
+                process_EFND_EPRED(in_a_ring,&pred,&command_details,buff);
             }
         }    
     }

@@ -68,8 +68,8 @@ int main(int argc, char* argv[])
 		init_tcp_client(&sockfd,&servaddr,argv[3],argv[2] );
 		getline(&buff,&len,stdin);
 		buff[strlen(buff)-1]= '\0';
-		func(&sockfd,0, &buff);
-		func(&sockfd,1,&buff);
+		tcp_message(&sockfd,0, &buff);
+		tcp_message(&sockfd,1,&buff);
 		printf("\n%d\n",sockfd);
 		close(sockfd);
 	}

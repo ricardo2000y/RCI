@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+ 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Mar 26 08:57:15 2022
+# Make data base, printed on Mon Mar 28 00:06:59 2022
 
 # Variables
 
@@ -52,6 +54,8 @@ VSCODE_CWD = /mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
 PATH = /root/.vscode-server/bin/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
+# makefile (from 'Makefile', line 22)
+UDP_CLIENT_NAME = udpclient
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # makefile (from 'Makefile', line 15)
@@ -59,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-4a696869-fef4-4815-b95e-650d42ccd3c4.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-6cbd6b38-d1f4-47d5-90fc-c2d54d15d416.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -79,7 +83,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/12_interop
+WSL_INTEROP = /run/WSL/14_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -93,9 +97,11 @@ OBJS_CTRASH = $(addprefix , $(C_TRASH))
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# makefile (from 'Makefile', line 31)
+UDP_CLIENT_SOURCES = A_UDPClient.c
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
@@ -108,6 +114,8 @@ MAKECMDGOALS := all
 SHLVL = 0
 # makefile (from 'Makefile', line 10)
 CC = gcc
+# makefile (from 'Makefile', line 21)
+TCP_CLIENT_NAME = tcpclient
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -118,7 +126,7 @@ USER = root
 NAME = Code
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
-# makefile (from 'Makefile', line 26)
+# makefile (from 'Makefile', line 27)
 RING_SOURCES = ring.c 
 # environment
 VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/sampa/.vscode/extensions/ms-vscode-remote.remote-wsl-0.64.2
@@ -130,7 +138,7 @@ MAKE_COMMAND := make
 *F = $(notdir $*)
 # makefile
 MAKEFLAGS = pqrR
-# makefile (from 'Makefile', line 25)
+# makefile (from 'Makefile', line 26)
 RING_OBJS = ring.o
 # environment
 MFLAGS = -pqrR
@@ -144,12 +152,14 @@ MFLAGS = -pqrR
 SO_CTRASH = $(addprefix , $(C_TRASH))
 # default
 MAKEFILES := 
-# makefile (from 'Makefile', line 22)
+# makefile (from 'Makefile', line 23)
 PROG_NAME = $(RING_NAME) 
 # automatic
 <F = $(notdir $<)
 # environment
 LC_ALL = C
+# makefile (from 'Makefile', line 29)
+TCP_CLIENT_SOURCES = A_tcp_client.c
 # environment
 HOSTTYPE = x86_64
 # automatic
@@ -173,7 +183,7 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 # environment
 MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=81/1024=8%, Rehash=0, Collisions=5/111=5%
+# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
 
 # Pattern-specific Variable Values
 
@@ -181,9 +191,9 @@ MOTD_SHOWN = update-motd
 
 # Directories
 
-# . (device 2080, inode 35736): 16 files, no impossibilities.
+# . (device 2080, inode 35736): 13 files, no impossibilities.
 
-# 16 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -202,10 +212,10 @@ cleanExe:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 56):
+#  recipe to execute (from 'Makefile', line 72):
 	rm -rf $(PROG_NAME)
 
-.PHONY: default clean cleanall
+.PHONY: default tcpclient udpclient udpc tcpc clean cleanall
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -219,9 +229,15 @@ ring.c:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-03-23 19:32:54.0282743
+#  Last modified 2022-03-28 00:05:15.4842383
 #  File has been updated.
 #  Successfully updated.
+
+# Not a target:
+A_UDPClient.c:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
 
 default: ring
 #  Phony target (prerequisite of .PHONY).
@@ -240,22 +256,29 @@ clean:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 53):
+#  recipe to execute (from 'Makefile', line 69):
 	rm -rf $(C_TRASH)  
+
+# Not a target:
+A_tcp_client.c:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
 
 ring: ring.o
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 39):
+#  recipe to execute (from 'Makefile', line 47):
 	$(CC) $(MODE) -L. $(CFLAGS) -o $@ $(RING_OBJS) 
 
 ring.o: ring.c
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 43):
+#  recipe to execute (from 'Makefile', line 51):
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
+ 
 
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
@@ -263,22 +286,48 @@ cleanall: clean cleanExe
 #  File does not exist.
 #  File has not been updated.
 
+udpc: udpclient
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+udpclient: A_UDPClient.c udpclient
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 57):
+	$(CC) $(MODE)  $(CFLAGS) A_UDPClient.c -o udpclient  
+
+tcpc: tcpclient
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+tcpclient: A_tcp_client.c tcpclient
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 54):
+	$(CC) $(MODE)  $(CFLAGS) A_tcp_client.c -o tcpclient 
+
 # files hash-table stats:
-# Load=12/1024=1%, Rehash=0, Collisions=0/37=0%
+# Load=18/1024=2%, Rehash=0, Collisions=0/59=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 26 / storage = 239 B / avg = 9 B
-# current buf: size = 8162 B / used = 239 B / count = 26 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 27 / storage = 243 B / avg = 9 B
+# current buf: size = 8162 B / used = 243 B / count = 27 / avg = 9 B
 
-# strcache performance: lookups = 49 / hit rate = 46%
+# strcache performance: lookups = 68 / hit rate = 60%
 # hash-table stats:
-# Load=26/8192=0%, Rehash=0, Collisions=1/49=2%
-# Finished Make data base on Sat Mar 26 08:57:15 2022
+# Load=27/8192=0%, Rehash=0, Collisions=1/68=1%
+# Finished Make data base on Mon Mar 28 00:06:59 2022
 
- 
-make: *** No rule to make target 'all'.  Stop.
  
