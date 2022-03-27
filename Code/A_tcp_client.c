@@ -12,30 +12,15 @@
 #define SA struct sockaddr
 #define SA_in struct sockaddr_in
 
-void func(int *sockfd, int mode, SA_in *servaddr, char** message)
+void tcp_message(int *sockfd, int mode, char** message)
 {
-	//char buff[MAX];
-	//int n;
 	
 	if(mode == 0) {
-		if(*sockfd==-1){
-			// connect the client socket to server socket
-			if (connect(*sockfd, (SA*)servaddr, sizeof(*servaddr)) != 0) {
-				printf("Connection with the server failed.\n");
-				exit(0);
-			}
-			else
-				printf("Connected to the server.\n");
-			printf("Enter the string : ");
-		}
 			write(*sockfd, *message, 100000);
 	}
 	else{
 		read(*sockfd, *message, 100000);
 		printf("From Server : %s", *message);
-		//if ((strncmp(buff, "exit", 4)) == 0) {
-		//	printf("Client Exit...\n");
-			
 	}
 }
 
@@ -66,9 +51,9 @@ void init_tcp_client(int *sockfd,SA_in*servaddr, char * port_, char*addr){
 int main(int argc, char* argv[])
 {
 
-	int sockfd , n;
+	int sockfd ;
 	SA_in servaddr;
-	size_t len = 100;
+	size_t len;
 	char* buff= (char*)malloc(sizeof(char)*100);
 	
 	if (argc != 4) {
@@ -81,22 +66,13 @@ int main(int argc, char* argv[])
 	// function for chat
 	while(1){
 		init_tcp_client(&sockfd,&servaddr,argv[3],argv[2] );
-		n=0;
-		len=10000;
 		getline(&buff,&len,stdin);
 		buff[strlen(buff)-1]= '\0';
-		//bzero(buff, MAX);
-		//while ((buff[n++] = getchar()) != '\n')
-		//	;
-		func(&sockfd,0,&servaddr, &buff);
-		func(&sockfd,1,&servaddr,&buff);
+		func(&sockfd,0, &buff);
+		func(&sockfd,1,&buff);
 		printf("\n%d\n",sockfd);
 		close(sockfd);
-		
-		
-		
 	}
-	
 
 	// close the socket
 	close(sockfd);
