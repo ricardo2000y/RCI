@@ -20,9 +20,9 @@
 #define SA_in struct sockaddr_in
 #define max(A,B) ((A)>=(B)?(A):(B))
 typedef struct {  
-    char* key;
-    char* IP;
-    char* PORT;
+    char key[10];
+    char IP[20];
+    char PORT[10];
 } node;
 typedef struct {
     char * command;

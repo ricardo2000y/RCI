@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Mar 28 00:06:59 2022
+# Make data base, printed on Tue Mar 29 17:12:21 2022
 
 # Variables
 
@@ -63,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-6cbd6b38-d1f4-47d5-90fc-c2d54d15d416.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-ab01e5b9-4c97-4b19-9b96-df652e3dcbde.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +83,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/14_interop
+WSL_INTEROP = /run/WSL/12_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -97,7 +97,7 @@ OBJS_CTRASH = $(addprefix , $(C_TRASH))
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # makefile (from 'Makefile', line 31)
@@ -180,10 +180,8 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
-# environment
-MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
+# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
 
 # Pattern-specific Variable Values
 
@@ -191,9 +189,9 @@ MOTD_SHOWN = update-motd
 
 # Directories
 
-# . (device 2080, inode 35736): 13 files, no impossibilities.
+# . (device 2080, inode 35736): 15 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 15 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,8 +276,8 @@ ring.o: ring.c
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 51):
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
- 
 
+ 
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -325,9 +323,9 @@ tcpclient: A_tcp_client.c tcpclient
 # strcache buffers: 1 (0) / strings = 27 / storage = 243 B / avg = 9 B
 # current buf: size = 8162 B / used = 243 B / count = 27 / avg = 9 B
 
-# strcache performance: lookups = 68 / hit rate = 60%
+# strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
-# Load=27/8192=0%, Rehash=0, Collisions=1/68=1%
-# Finished Make data base on Mon Mar 28 00:06:59 2022
+# Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
+# Finished Make data base on Tue Mar 29 17:12:21 2022
 
  
