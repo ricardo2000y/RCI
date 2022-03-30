@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
- 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Mar 29 17:12:21 2022
+# Make data base, printed on Wed Mar 30 16:53:54 2022
 
 # Variables
 
@@ -63,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-ab01e5b9-4c97-4b19-9b96-df652e3dcbde.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-e3830b66-3c94-4c15-b927-e2f120fbe9a0.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +81,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/12_interop
+WSL_INTEROP = /run/WSL/10_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -180,8 +178,10 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
+# environment
+MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
+# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
 
 # Pattern-specific Variable Values
 
@@ -275,9 +275,11 @@ ring.o: ring.c
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 51):
+ 
+make: *** No rule to make target 'all'.  Stop.
+ 
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
- 
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -326,6 +328,6 @@ tcpclient: A_tcp_client.c tcpclient
 # strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
 # Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Tue Mar 29 17:12:21 2022
+# Finished Make data base on Wed Mar 30 16:53:54 2022
 
  

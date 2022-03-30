@@ -25,12 +25,12 @@ typedef struct {
     char PORT[10];
 } node;
 typedef struct {
-    char * command;
+    char  command[10];
     char * n;
     char * searched_key;
-    char * key;
-    char * IP;
-    char * PORT;
+    char key[10];
+    char IP[20];
+    char PORT[10];
 }command_details_t;
 
 typedef struct{

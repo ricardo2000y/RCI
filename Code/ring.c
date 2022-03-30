@@ -184,7 +184,6 @@ void copy_node_info(node *origin, node *copy){
     strcpy(copy->IP,origin->IP);
     strcpy(copy->key,origin->key);
     strcpy(copy->PORT,origin->PORT);
-  
     
 }
 
@@ -205,7 +204,6 @@ char* split_str_nd_copy_to_new_location(char** str_to_split){
     splitted = strsep(str_to_split, " "); 
     if (splitted == NULL){// do routine for bad command 
         printf("%s given is incomplete program will terminate\n" ,"command");
-        
         exit(0);
     }
     str_to_save = strdup (splitted);
@@ -219,14 +217,17 @@ void split_command(char * fcommand, command_details_t* command_details){
     //char* splitted=NULL;
     //bool valid;
     //? malloc of the strings inside command is needed or not? 
-    
+    char* splitted;
     char* str = strdup(fcommand);
-
-    command_details->command=split_str_nd_copy_to_new_location(&str);
-    command_details->key=split_str_nd_copy_to_new_location(&str);
-    command_details->IP=split_str_nd_copy_to_new_location(&str);
-    command_details->PORT=split_str_nd_copy_to_new_location(&str);
-    printf("%s\n%s\n%s\n%s\n ",command_details->command, command_details->IP, command_details->key, command_details->PORT);
+    splitted=split_str_nd_copy_to_new_location(&str);
+    strcpy(command_details->command,splitted);
+    splitted=split_str_nd_copy_to_new_location(&str);
+    strcpy(command_details->key,splitted);
+    splitted=split_str_nd_copy_to_new_location(&str);
+    strcpy(command_details->IP,splitted);
+    splitted=split_str_nd_copy_to_new_location(&str);
+    strcpy(command_details->PORT,splitted);
+    printf("%s\n%s\n%s\n%s\n",command_details->command, command_details->IP, command_details->key, command_details->PORT);
     if(str != NULL){// * do routine for bad command 
         printf("%s given is too big program will terminate", fcommand);
         free(str);
@@ -285,18 +286,27 @@ void start_routine(node* me, node*pred, node* succ,node* temp_node,command_detai
     }
 
 void split_FND_RSP(command_details_t* command,char **str){ 
-    command->command= split_str_nd_copy_to_new_location(str); 
+    char* splitted;
+    
+    splitted=split_str_nd_copy_to_new_location(str);
+    strcpy(command->command,splitted);
+    splitted=split_str_nd_copy_to_new_location(str);
+    strcpy(command->key,splitted);
+    splitted=split_str_nd_copy_to_new_location(str);
+    strcpy(command->IP,splitted);
+    splitted=split_str_nd_copy_to_new_location(str);
+    strcpy(command->PORT,splitted);
+    
     command->searched_key= split_str_nd_copy_to_new_location(str); 
     command->n= split_str_nd_copy_to_new_location(str);
-    command->key= split_str_nd_copy_to_new_location(str);
-    command->IP= split_str_nd_copy_to_new_location(str);
-    command->PORT= split_str_nd_copy_to_new_location(str);
 }
 
 //! bug here 
 void split_self_pred_m(char*buff, node * node, char* compare){
     char *splitted;
-    char* str = strdup(buff);
+    char* str= (char*)malloc(sizeof(buff)+1);
+    //char* str = strdup(buff);
+    strcpy(str,buff);
     splitted= split_str_nd_copy_to_new_location(&str);
     printf("%s",splitted);
     if(strcmp(splitted,compare)==0){
@@ -363,11 +373,11 @@ void process_EFND_EPRED(bool in_a_ring,node *node, command_details_t *command,ch
     char *str =strdup(buff);
     char *splitted;
     splitted= split_str_nd_copy_to_new_location(&str);
-    command->command= strdup(splitted);
+    strcpy(command->command,splitted);
     if (in_a_ring){
         if (strcmp("EFND",command->command)==0){
            splitted= split_str_nd_copy_to_new_location(&str);
-           command->key=strdup(splitted);
+           strcpy(command->key,splitted);
            
        
            //! start a search for the this key  
@@ -495,7 +505,7 @@ int main(int argc, char *argv[])
     time_t entered_ring= time(NULL);
     node me, pred,succ, temp_node, * chord = NULL;
     command_details_t command_details;
-    bool in_a_ring =false;
+    bool in_a_ring = false;
     char* fcommand=(char*) calloc(1,sizeof(char) *100);
     SA_in tcp_client_addr, udp_client_addr,tcp_servaddr;
     //todo mudar variaveis para definitivas no tpc e udp
@@ -533,10 +543,14 @@ int main(int argc, char *argv[])
             }
                 
             else if (*fcommand == 'p' ){/*enters the ring know it's pred_key*/
-                split_command(fcommand,&command_details);
-                sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-
-                tcp_client(&tcp_c_fd,&tcp_servaddr,command_details.PORT,command_details.IP,buff);
+                if (in_a_ring== false){
+                    split_command(fcommand,&command_details);   
+                    strcpy(pred.IP,command_details.IP);
+                    strcpy(pred.key,command_details.key);
+                    strcpy(pred.PORT,command_details.PORT);
+                    sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+                    tcp_client(&tcp_c_fd,&tcp_servaddr,command_details.PORT,command_details.IP,buff);
+                }
             }
                 
             else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/ 
@@ -605,40 +619,27 @@ int main(int argc, char *argv[])
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
                 if (*buff =='S'){
+                    split_self_pred_m( buff, &temp_node,"SELF");
                     if(in_a_ring){//!need to be revised basicly putting the client in a ring incase he sends a PRED or 
                     //! need to check if my succ was null at this point if it was then no need to send message cus i just got into a ring
-                        split_self_pred_m( buff, &temp_node,"SELF");
-                        //if(strcmp(me.key, succ.key)==0){
-                            //char * str = (char*) malloc(sizeof(buff));
-                            //strcpy(str,buff);
-                            
-                           
-                           /* char* splitted= split_str_nd_copy_to_new_location(buff);
-                            printf("%s",splitted);
-                            if(strcmp(temp_node.,"SELF")==0){
-                                splitted= split_str_nd_copy_to_new_location(buff);
-                                strcpy(temp_node.key,splitted);
-                                splitted= split_str_nd_copy_to_new_location(buff);
-                                strcpy(temp_node.IP,splitted);
-                                splitted= split_str_nd_copy_to_new_location(buff);
-                                strcpy(temp_node.PORT,splitted);  
-                            //}  */
+                        if(strcmp(me.key, succ.key)==0){
                             sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                            //printf("%s  \n", buff);
                             tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT, temp_node.IP,buff);
                             copy_node_info(&temp_node,&pred);
-                            
-                       // }
-                        /*else {
+                        }
+                        else {
                             sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                            tcp_client(&tcp_c_fd,&tcp_servaddr,succ.PORT, succ.IP,&buff);
-                        }*/
+                            tcp_client(&tcp_c_fd,&tcp_servaddr,succ.PORT, succ.IP,buff);
+                        }
                         copy_node_info(&temp_node,&succ);
                     }
                     else{
-                        entered_ring = time(NULL);
-                        split_self_pred_m( buff, &succ,"SELF");
                         in_a_ring=true;
+                        entered_ring = time(NULL);
+                        copy_node_info(&temp_node,&succ);
+
+                        //split_self_pred_m( buff, &succ,"SELF");
+                        
                     } 
                     
                 }
