@@ -8,6 +8,7 @@
 
 //! 
 //TODO on udp recieved messages remove the \n by default !  use strcspn(): (basicly find the position of the \n and put a \0 there 
+//*^code is used in tcp so just implement for udp aswell ! 
 // implica implementar pelo menos tcp código escrito de forma independente ao ring para já
 //? para bentry têm que ser feito o store do address que contactou (por causa das chords)
 //* guardar num addr_bentry ou algo do genero!
@@ -40,6 +41,37 @@
 // starts a find with 6 arguments 
 //todo4: implement the code for all the ^actions that converts the info into a string using the following code as eg.
 //todo now implement the tcp client and udp client and set up 2/3 messages to test
+
+//! making quick resume of the connections so i don't lose myself on making the functions
+/*
+todo TCP
+
+tcp_c_fd  //*  connects to the pred 
+sends:SELF
+recieves: PRED,FND,RSP
+//////////////////////////////////
+accepted_fd //* accepts a connected from a new client(aka new succ)
+sends: nothing //?
+recieves:SELF(then binds this to the tcp_s_fd)
+//////////////////////////////////
+tcp_s_fd//* connected to the succ
+sends:PRED, FND, RSP
+recieves:nothing //?  
+
+todo UDP
+udp_c_fd(//?chord_fd)  
+//* connects to a chord if one exists
+sends:FND,RSP,"ACK" //* ACK IS ONLY WHEN IT RECIEVES A EPRED
+recieves:"ACK",EPRED
+
+udp_s_fd
+sends:"ACK", EPRED
+recieves:"ACK",FND,RSP, EFND//* when EFND we need to store the addres (maybe store up to 5 addresses(?))
+
+*/
+//! making quick resume of the connections so i don't lose myself on making the functions
+
+
 
 // gets line from stdin given by user
 void get_info_from_client( char* fcommand){
@@ -359,18 +391,6 @@ void  init_udp_server(int *udp_fd, int PORT){
     }
 }
 
-void tcp_message(int *tcp_c_fd, int mode, char** message)
-{
-	
-	if(mode == 0) {
-			write(*tcp_c_fd, *message, sizeof(*message));
-	}
-	else{
-		read(*tcp_c_fd, *message, 100000);
-		printf("From Server : %s", *message);
-	}
-}
-
 //TODO: apenas faz um connect durante toda a execução(e quand há um leave ou pred)
 void tcp_client(int *tcp_c_fd,SA_in*tcp_servaddr, char * port_, char*addr, char* message){
     if ( (*tcp_c_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
@@ -393,7 +413,7 @@ void tcp_client(int *tcp_c_fd,SA_in*tcp_servaddr, char * port_, char*addr, char*
 	}
 	else
 		printf("Connected to the server.\n");
-    write(*tcp_c_fd, message, 1000);
+    write(*tcp_c_fd,message, 1000);
 
 }
 
@@ -520,9 +540,12 @@ int main(int argc, char *argv[])
                 }
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
-                if(*buff=='P'){
+                if(*buff=='P'){//* might be on the wrong place
+
                     split_self_pred_m(buff,&pred,"PRED",&command_details);
-                    sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT); 
+                    sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+                    close(tcp_c_fd);
+                    close(tcp_s_fd); 
                     tcp_client(&tcp_c_fd,&tcp_servaddr,pred.PORT, pred.IP,buff);
                     
                 }
@@ -564,13 +587,13 @@ int main(int argc, char *argv[])
                     //! need to check if my succ was null at this point if it was then no need to send message cus i just got into a ring
                         if(strcmp(me.key, succ.key)==0){
                             sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                            tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);
+                            write(accepted_socket,buff,1000);
                             copy_node_info(&temp_node,&pred);
                             
                         }
                         else {
                             sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                            write(tcp_s_fd,buff,100);
+                            write(tcp_s_fd,buff,1000);
                             close(tcp_s_fd);
                             
                         }
@@ -594,8 +617,7 @@ int main(int argc, char *argv[])
                 printf("%s\n", buff);
                 if (*buff =='S'){
                    //! NEED TO REVIEW
-                    in_a_ring = TRUE;
-            
+                    in_a_ring = 1;
                     entered_ring = time(NULL);
                     split_self_pred_m( buff, &succ,"SELF",&command_details);
                     //!NEED TO REVIEW
@@ -607,3 +629,4 @@ int main(int argc, char *argv[])
     return 0;    
 }
 
+//! pentry is buggy not sure why 
