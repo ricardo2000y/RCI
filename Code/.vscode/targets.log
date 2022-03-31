@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+ 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Mar 30 17:35:10 2022
+# Make data base, printed on Wed Mar 30 21:26:36 2022
 
 # Variables
 
@@ -61,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-3f8f4d23-554b-4bdf-93db-36da2c0fed0f.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-37b76d31-8fc5-4f83-b9fe-fcc3209de5d1.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -178,10 +180,8 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
-# environment
-MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
+# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
 
 # Pattern-specific Variable Values
 
@@ -277,9 +277,6 @@ ring.o: ring.c
 #  recipe to execute (from 'Makefile', line 51):
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
- 
-make: *** No rule to make target 'all'.  Stop.
- 
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -327,7 +324,8 @@ tcpclient: A_tcp_client.c tcpclient
 
 # strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
+ 
 # Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Wed Mar 30 17:35:10 2022
+# Finished Make data base on Wed Mar 30 21:26:36 2022
 
  
