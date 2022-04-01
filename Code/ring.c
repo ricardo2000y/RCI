@@ -48,7 +48,7 @@ todo TCP
 
 tcp_c_fd  //*  connects to the pred 
 sends:SELF
-recieves: PRED,FND,RSP
+recieves: PRED,FND,RSP ---
 //////////////////////////////////
 accepted_fd //* accepts a connected from a new client(aka new succ)
 sends: nothing //?
@@ -86,13 +86,13 @@ void show_status(bool in_a_ring, node me, node succ, node pred, node* chord,time
     printf("%-15s\t%-15s\t%-15s\n\n"," "," ","STATUS");
     printf("%-15s\t%-15s\t%-15s\t%-15s\n","     ", "KEY","IP","PORT");
     printf("mine:       \t%-15s\t%-15s\t%-15s\n",me.key , me.IP,me.PORT); 
-   //if(in_a_ring){
+   if(in_a_ring){
         printf("sucessor:   \t%-15s\t%-15s\t%-15s\n",succ.key , succ.IP,succ.PORT);
         printf("predecessor:\t%-15s\t%-15s\t%-15s\n",pred.key , pred.IP,pred.PORT);
         if(chord->IP == 0) printf("atalho:\t%-15s\t%-15s\t%-15s\n",chord->key , chord->IP,chord->PORT);
         printf("--------------------------------------------------------");
         printf("\nBeen in the ring for:%ld minutes and %ld seconds\n" , uptime/60,uptime%60);
-    //}
+    }
     
     if(!in_a_ring){
             printf("--------------------------------------------------------");
@@ -157,7 +157,6 @@ void split_str_nd_copy_to_new_location(char** str_to_split,char* str_to_save){
             exit(0);
         }
         strcpy(str_to_save ,splitted);
-        //free(splitted);
     }
 }
 
@@ -200,24 +199,19 @@ bool find_key(char * fcommand,char* me, char* succ, command_details_t* command_d
     return false;
 }
 
-// returns the max ammong given int's
-int max_all(int sock_1,int sock_2, int sock_3,int sock_4,int sock_5,int sock_6){
-    sock_1= max(sock_1,sock_2);
-    sock_1= max(sock_1,sock_3);
-    sock_1= max(sock_1,sock_4);
-    sock_1= max(sock_1,sock_5);
-    sock_1= max(sock_1,sock_6);
-    return sock_1;
-}
-
 //starting routine gets the argv and checks it's validity storing it in me
-void start_routine(node* me, node*pred, node* succ,node* temp_node,node* chord,command_details_t* command_details,char**argv){
+void start_routine(node* me, node*pred, node* succ,node* temp_node,node* chord,command_details_t* command_details,
+                    char** argv,char* fcommand,char* buff,fd_set* mask,fd_set* mask_copy){
     memset(me,0,sizeof(node));
     memset(pred, 0,sizeof(node));
     memset(succ, 0,sizeof(node));
     memset(temp_node,0,sizeof(node));
     memset(chord,0,sizeof(node));
-    memset(command_details, 0,sizeof(command_details_t));   
+    memset(command_details, 0,sizeof(command_details_t));
+    memset(fcommand,0,sizeof(char)*100);
+    memset(buff,0,sizeof(char)*100);
+    memset(mask,0,sizeof(fd_set));
+    memset(mask_copy,0,sizeof(fd_set));   
     strcpy(me->key,argv[1]);
     strcpy(me->IP,argv[2]);
     strcpy(me->PORT,argv[3]);
@@ -254,11 +248,16 @@ void split_self_pred_m(char*buff, node * node, char* compare,command_details_t* 
     } 
     free(str_to_free); 
 }
-                 
+
+//todo put tcp searching working 
+//* i can answer for me ( if my distance to searched is < than my_succ to searched key  then the key is mine)
+//* can awser for pred incase of : a EFND!! this node starts a find k
+//* and decide where to send based on distance
+
 //! working late so need to recheck + comment from here to
 int process_FND_RSP(char* buff,node me,node succ,node pred,node* chord){//? maybe pass command as arg so i can have access to it outside this func(most likely + easy change so for now i'll keep like is)
     command_details_t command;
-    char str[30] ;
+    char str[100] ;
     strcpy(str,buff);
     split_FND_RSP(&command,str);
     int succ_distance =check_distance(command.searched_key,succ.key);
@@ -279,8 +278,8 @@ int process_FND_RSP(char* buff,node me,node succ,node pred,node* chord){//? mayb
             return 1;//! for now 1=tcp
         }
         else{
-            strcat(buff,"\n");
-            return 2;
+            //strcat(buff,"\n");
+            return 2;//! send search via_udp
         }
     }
     else if(strcmp(command.command,"RSP")==0){
@@ -328,14 +327,33 @@ void process_EFND_EPRED(bool in_a_ring,node *node, command_details_t *command_de
 }
 
 //initializes the mask with the req fd's
-void mask_init(fd_set *mask_copy,int udp_fd,int listen_fd,int tcp_s_fd,int chord_fd,int accepted_socket,int tcp_c_fd){
+void mask_init(fd_set *mask_copy,int*maxfd,int udp_fd,int listen_fd,int tcp_s_fd,int chord_fd,int accepted_socket,int tcp_c_fd){
+    *maxfd =0;
     FD_SET(0,mask_copy);
-    if(listen_fd) FD_SET(listen_fd, mask_copy);
-    if(udp_fd)FD_SET(udp_fd, mask_copy);
-    if(tcp_s_fd)FD_SET(tcp_s_fd, mask_copy);
-    if(chord_fd)FD_SET(chord_fd, mask_copy);
-    if(accepted_socket)FD_SET(accepted_socket, mask_copy);
-    if(tcp_c_fd)FD_SET(tcp_c_fd, mask_copy);
+    if(listen_fd) {
+        FD_SET(listen_fd, mask_copy);
+        *maxfd=max(*maxfd,listen_fd);
+    }
+    if(udp_fd){
+        FD_SET(udp_fd, mask_copy);
+        *maxfd=max(*maxfd,udp_fd);
+    }
+    if(tcp_s_fd){
+        FD_SET(tcp_s_fd, mask_copy);
+        *maxfd=max(*maxfd,tcp_s_fd);
+        }
+    if(chord_fd){
+        FD_SET(chord_fd, mask_copy);
+        *maxfd=max(*maxfd,chord_fd);
+    }
+    if(accepted_socket){
+        FD_SET(accepted_socket, mask_copy);
+        *maxfd=max(*maxfd,accepted_socket);
+    }
+    if(tcp_c_fd){
+        FD_SET(tcp_c_fd, mask_copy);
+        *maxfd=max(*maxfd,tcp_c_fd);
+    }
 }
 
 void  init_tcp_server(int *listen_fd, int PORT){
@@ -413,7 +431,7 @@ void tcp_client(int *tcp_c_fd,SA_in*tcp_servaddr, char * port_, char*addr, char*
 	}
 	else
 		printf("Connected to the server.\n");
-    write(*tcp_c_fd,message, 1000);
+    write(*tcp_c_fd,message, sizeof(char)*100);
 
 }
 
@@ -425,30 +443,27 @@ int main(int argc, char *argv[])
     } 
     // VAR INIT
     fd_set mask, mask_copy;
-    int udp_fd=0, listen_fd=0,tcp_s_fd=0,maxfd=0,chord_fd=0,port,tcp_c_fd=0, n,accepted_socket=0;
+    int udp_fd=0, listen_fd=0,tcp_s_fd=0,maxfd=0,chord_fd=0,port,temp_tcp_c_fd=0,tcp_c_fd=0, n,accepted_socket=0;
     time_t entered_ring= time(NULL);
     node me, pred,succ, temp_node,  chord;
     command_details_t command_details;
     bool in_a_ring = false;
     char fcommand[100];
-    
     SA_in tcp_client_addr, udp_client_addr,tcp_servaddr;
     //todo mudar variaveis para definitivas no tpc e udp
-    char buff[100];
-    memset(fcommand,0,sizeof(char)*100);
-    memset(buff,0,sizeof(char)*100);
     socklen_t len = sizeof(SA_in);
+    char buff[100];    
     // VAR INIT
-    start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv);
+    
+    start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv,fcommand,buff,&mask,&mask_copy);
     port = strtol(me.PORT, NULL, 10);
     init_tcp_server(&listen_fd, port);
     init_udp_server(&udp_fd, port);
-    //!mask_init(&mask_copy,udp_fd,listen_fd,tcp_s_fd,chord_fd);
+    
     for(;;){
-        mask_init(&mask_copy,udp_fd,listen_fd,tcp_s_fd,chord_fd,accepted_socket,tcp_c_fd);
-        //FD_ZERO(&mask);
+        memset(buff,0,sizeof(char)*100);
+        mask_init(&mask_copy,&maxfd,udp_fd,listen_fd,tcp_s_fd,chord_fd,accepted_socket,tcp_c_fd);
         mask = mask_copy;
-        maxfd= max_all(udp_fd,listen_fd,tcp_s_fd,chord_fd, accepted_socket,tcp_c_fd);
         select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
         if(FD_ISSET(0,&mask)){
             FD_CLR(0, &mask_copy);
@@ -458,7 +473,6 @@ int main(int argc, char *argv[])
                     in_a_ring =true; 
                     entered_ring = time(NULL);
                     new(&me, &succ,&pred,&temp_node);
-                    
                 }
                 else printf("Already in a ring u dumbass\n");
             }
@@ -505,13 +519,55 @@ int main(int argc, char *argv[])
             }
                 
             else if(*fcommand =='l'){
-                memset(&pred, 0,sizeof(node));
-                memset(&succ, 0,sizeof(node));
-                in_a_ring= false;
+               if(in_a_ring){
+                    if(strcmp(me.key, succ.key)!=0){
+                        sprintf(buff,"%s %s %s %s\n","PRED", pred.key,pred.IP,pred.PORT);
+                        write(tcp_s_fd,buff,sizeof(char)*100);
+                    }
+                    memset(&pred, 0,sizeof(node));
+                    memset(&succ, 0,sizeof(node));
+                    //todo put close all sockets inside a func
+                    if (chord_fd){
+                        close(chord_fd);
+                        chord_fd=0;
+                        FD_CLR(chord_fd, &mask_copy);
+                    } 
+                    if (tcp_c_fd){
+                        close(tcp_c_fd);
+                        tcp_c_fd=0;
+                        FD_CLR(tcp_c_fd, &mask_copy);
+                    } 
+                    if (accepted_socket){
+                        close(accepted_socket);
+                        accepted_socket=0;
+                        FD_CLR(accepted_socket, &mask_copy);
+                    } 
+                    if(tcp_s_fd){
+                        close(tcp_s_fd);
+                        tcp_s_fd =0;
+                        FD_CLR(tcp_s_fd, &mask_copy);
+                    }
+                    in_a_ring= false;
+               }
             }
 
             else if(*fcommand =='e' ){// exit
-                if (chord_fd) close(chord_fd);
+                if (chord_fd){
+                    close(chord_fd);
+                    chord_fd=0;
+                } 
+                if (tcp_c_fd){
+                    close(tcp_c_fd);
+                    tcp_c_fd=0;
+                } 
+                if (udp_fd){
+                    close(udp_fd);
+                    udp_fd=0;
+                } 
+                if (accepted_socket){
+                    close(accepted_socket);
+                    accepted_socket=0;
+                } 
                 close(listen_fd);
                 close(udp_fd);
                 exit(0);
@@ -530,35 +586,32 @@ int main(int argc, char *argv[])
                 printf("Server accept failed.\n");
                 exit(0);
             }      
-        }    
-        else if(tcp_s_fd && FD_ISSET(tcp_s_fd, &mask)){
+        }   
+        /*
             FD_CLR(tcp_s_fd, &mask_copy);
-            if((n = read(tcp_s_fd, buff, 1000)) != 0){
-                if(n == -1){
-                    printf("Reading error.\n");
-                    exit(1);
-                }
-                buff[strcspn(buff, "\n")] = 0;
-                printf("%s\n", buff);
-                if(*buff=='P'){//* might be on the wrong place
-
-                    split_self_pred_m(buff,&pred,"PRED",&command_details);
-                    sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                    close(tcp_c_fd);
-                    close(tcp_s_fd); 
-                    tcp_client(&tcp_c_fd,&tcp_servaddr,pred.PORT, pred.IP,buff);
-                    
-                }
-                else if((*buff=='F')||(*buff=='R')){
-                    process_FND_RSP(buff,me,succ,pred,&chord);
-                } 
-            }
-        }
+		if((n = read(tcp_s_fd, buff, 1000)) != 0){
+			if(n == -1){
+				printf("Reading error.\n");
+				exit(1);
+			}
+			buff[strcspn(buff, "\n")] = 0;
+			printf("%s\n", buff);
+			if(*buff=='P'){//* might be on the wrong place
+				split_self_pred_m(buff,&pred,"PRED",&command_details);
+				sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+				close(tcp_c_fd);
+				close(tcp_s_fd); 
+				tcp_client(&tcp_c_fd,&tcp_servaddr,pred.PORT, pred.IP,buff);
+				
+			}
+			else if((*buff=='F')||(*buff=='R')){
+				process_FND_RSP(buff,me,succ,pred,&chord);
+			} 
+		}
+        */ 
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
-            //FD_CLR(tcp_s_fd, &mask);
-            //static int i =0;
-            n = recvfrom(udp_fd, (char *)buff, 100, 
+            n = recvfrom(udp_fd, (char *)buff, 1000, 
                 MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,
                 &len);
             sendto(udp_fd, "ACK\0", strlen("ACK\0"), 
@@ -574,56 +627,63 @@ int main(int argc, char *argv[])
         }
         else if(accepted_socket && FD_ISSET(accepted_socket, &mask)){
             FD_CLR(accepted_socket, &mask_copy);
-            if((n = read(accepted_socket, buff, 1000)) != 0){
+            if((n = read(accepted_socket, buff, sizeof(char)*100)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
                     exit(1);
                 }
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
+                //! check this here
                 if (*buff =='S'){
                     split_self_pred_m( buff, &temp_node,"SELF",&command_details);
-                    if(in_a_ring){//!need to be revised basicly putting the client in a ring incase he sends a PRED or 
-                    //! need to check if my succ was null at this point if it was then no need to send message cus i just got into a ring
+                    if(in_a_ring){
                         if(strcmp(me.key, succ.key)==0){
                             sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                            write(accepted_socket,buff,1000);
                             copy_node_info(&temp_node,&pred);
+                            tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);
                             
                         }
                         else {
                             sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                            write(tcp_s_fd,buff,1000);
-                            close(tcp_s_fd);
-                            
+                            write(tcp_s_fd,buff,sizeof(char)*100);
+                            close(tcp_s_fd);                            
                         }
-                        copy_node_info(&temp_node,&succ);
-                        tcp_s_fd = accepted_socket;
-                        accepted_socket=0;
-                        FD_CLR(tcp_s_fd, &mask_copy);
-                    }    
+                        
+                    }
+                    if(!in_a_ring){
+                        in_a_ring=1;
+                        entered_ring = time(NULL);
+                    } 
+                    copy_node_info(&temp_node,&succ);
+                    tcp_s_fd = accepted_socket;
+                    accepted_socket=0;   
                 }
             }
 
         }
         else if(tcp_c_fd && FD_ISSET(tcp_c_fd, &mask)){
             FD_CLR(tcp_c_fd, &mask_copy);
-            if((n = read(tcp_c_fd, buff, 1000)) != 0){
+            if((n = read(tcp_c_fd, buff, sizeof(char)*100)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
                     exit(1);
                 }
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
-                if (*buff =='S'){
-                   //! NEED TO REVIEW
-                    in_a_ring = 1;
-                    entered_ring = time(NULL);
-                    split_self_pred_m( buff, &succ,"SELF",&command_details);
-                    //!NEED TO REVIEW
+                if(*buff=='P'){//* might be on the wrong place
+                    split_self_pred_m(buff,&pred,"PRED",&command_details);
+                    sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+                    close(tcp_c_fd);
+                    tcp_client(&temp_tcp_c_fd,&tcp_servaddr,pred.PORT, pred.IP,buff);
+                    tcp_c_fd=temp_tcp_c_fd;
+                    temp_tcp_c_fd=0;
+                    
                 }
+                else if((*buff=='F')||(*buff=='R')){
+                    process_FND_RSP(buff,me,succ,pred,&chord);
+                } 
             }
-
         }
     }
     return 0;    
