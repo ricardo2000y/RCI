@@ -1,6 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target 'all'.  Stop.
- 
+
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Mar 30 21:26:36 2022
+# Make data base, printed on Fri Apr  1 14:19:23 2022
 
 # Variables
 
@@ -53,7 +53,7 @@ VSCODE_CWD = /mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /root/.vscode-server/bin/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
+PATH = /root/.vscode-server/bin/e18005f0f1b33c29e81d732535d8c0e47cafb0b5/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
 # makefile (from 'Makefile', line 22)
 UDP_CLIENT_NAME = udpclient
 # environment
@@ -63,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-37b76d31-8fc5-4f83-b9fe-fcc3209de5d1.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-adb569e7-737b-4fcf-ad8f-750d69c161e2.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +83,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/10_interop
+WSL_INTEROP = /run/WSL/13_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -129,7 +129,7 @@ NAME = Code
 # makefile (from 'Makefile', line 27)
 RING_SOURCES = ring.c 
 # environment
-VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/sampa/.vscode/extensions/ms-vscode-remote.remote-wsl-0.64.2
+VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/sampa/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.0
 # default
 MAKE_COMMAND := make
 # default
@@ -278,6 +278,7 @@ ring.o: ring.c
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
 cleanall: clean cleanExe
+ 
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
@@ -324,8 +325,7 @@ tcpclient: A_tcp_client.c tcpclient
 
 # strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
- 
 # Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Wed Mar 30 21:26:36 2022
+# Finished Make data base on Fri Apr  1 14:19:23 2022
 
  
