@@ -286,7 +286,7 @@ void exit_routine(int* chord_fd,int* tcp_c_fd,int* accepted_socket,int* listen_f
 
 
 // determines if a given object is mine
-bool find_key(char * fcommand,char* me, char* succ, command_details_t* command_details){
+void split_find_command(char * fcommand,char* me, char* succ, command_details_t* command_details){
 
     char* str_to_free ,*str_to_split;
     str_to_free=str_to_split=strdup(fcommand);
@@ -298,11 +298,6 @@ bool find_key(char * fcommand,char* me, char* succ, command_details_t* command_d
         //free(str_to_free);
     }
     free(str_to_free);
-    int dist_me_k = check_distance(me, command_details->key);// * determines distance between me and object
-    int dist_succ_k= check_distance(succ,command_details->key);// * determines distance between me and object
-     if (dist_me_k <= dist_succ_k)// * if i am closer then object is mine
-         return true;
-    return false;
 }
 
 //starting routine gets the argv and checks it's validity storing it in me
@@ -361,10 +356,11 @@ void split_self_pred_m(char*buff, node * node, char* compare,command_details_t* 
 //* and decide where to send based on distance
 
 //! type might change and so will the name 
-// case 0 NOT MINE NOR PREDcase 1 RSP(me)(or EFND), case 2 RSP (pred)(or EFND)  || true = tcp false = udp
+// case 0  PREDcase 1 RSP(me)(or EFND), case 2 not mine nor my pred
+// on the variable (bool one) true = tcp false = udp
 //? possibility for this to also deal with finds? 
 // if so is possible change type to int on the mode and have 3  modes maybe ? 
-bool common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, command_details_t command, bool* tcp_or_udp){
+int common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, command_details_t command, bool* tcp_or_udp){
     int succ_distance =check_distance(succ.key,command.searched_key);
     int me_distance= check_distance(me.key,command.searched_key);
     
@@ -383,10 +379,10 @@ bool common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, c
         //sprintf(output, "%s %s %s %s %s %s\n", "FND",command.searched_key, command.n, command.key,command.IP, command.PORT);
     }else if(mode){
         if(check_distance(pred.key,command.searched_key)<= me_distance){
-            //! sitio errado mas ideia certa (basicamente testar quando recebe um EFND k e quando se faz um find k !!!)
             return 0;
         }
     }
+    return 2;
 }
 
 
@@ -397,22 +393,31 @@ int process_FND_RSP(char* buff,node me,node succ,node pred,node chord){//? maybe
     strcpy(str,buff);
     split_FND_RSP(&command,str);
     bool tcp_or_udp;
-    
+    int check,i=strtol(command.n, NULL, 10);
+
     if (strcmp(command.command,"FND")==0){
-        
-        if (common_code_FND_EFND(false,me,succ,pred,chord,command,&tcp_or_udp)){
+        check=common_code_FND_EFND(false,me,succ,pred,chord,command,&tcp_or_udp);
+        if (check==0){
+            // key is mine 
             sprintf(buff,"%s %s %s %s %s %s","RSP",command.searched_key, command.n,me.key ,me.IP, me.PORT);
-            //! do something to send the message using the tcp/upd here (might have to pass the filed descriptors to this func )
+            if(tcp_or_udp){
+                // tcp aka a simple write to the succ fd
+            }
+            else{
+                // udp aka sendto chord_fd
+            }
         }
         
     }
     else if(strcmp(command.command,"RSP")==0){
-        //TODO RSP ROUTINE(CASE FOR ME, SUCC OR CHORD)
         if (strcmp(me.key,command.searched_key)==0){
             //todo resposta para o gajo udp que me contactou a dizer a resposta ou simplesmente mostra ao user caso seja essa a situação
             // o check vai ser feito pelo n que a busca tiver... tenho que criar ums estrutura para guardar a info de cada pesquisa (talvez uma array de 100 posições)
             //preciso de guardar o adress (cus it's udp only) portanto uma array de addresses chega e o n é incremental e guarda lá dentro o address maybe ? 
             //todo algumas ideias (cansado para implementar atm )
+            if(i<5){
+                //this key search was started by a EFND
+            }
             return 3;
         }
         //! here still on works this part of the code might not be needed at all 
@@ -437,24 +442,43 @@ void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, 
 //todo all this func is where i stopped for now 
     char* str_to_free ,*str_to_split;
     bool tcp_or_udp;
+    int check;
     str_to_free=str_to_split=strdup(buff);
     split_str_nd_copy_to_new_location(&str_to_split,command_details->command);
-    
     if (in_a_ring){
         if (strcmp("EFND",command_details->command)==0){
-           if(common_code_FND_EFND(true,me,succ,*pred,chord,*command_details,&tcp_or_udp)==1){
-               //...
+           check =common_code_FND_EFND(true,me,succ,*pred,chord,*command_details,&tcp_or_udp);
+           if(check==1){
+               // respond via UDP with my info 
+                sprintf(buff,"%s %s %s %s","EPRED",me.key, me.IP,me.PORT);
+                //! check if i just add the \n here
+                //! missing the sendto...
            }
-           
-           sprintf(buff,"%s %s %s %s %s %s","RSP",command_details->searched_key, command_details->n,pred->key, pred->IP, pred->PORT);
-           
-           //! check if mine or pred and then check best way to continue search by distance between succ/chord to searched key
-           //! start a search for the this key  
+           else if(check==0){
+               //respond via UDP with my pred info
+               sprintf(buff,"%s %s %s %s","EPRED",pred->key, pred->IP,pred->PORT);
+               //! check if i just add the \n here
+               //! missing the sendto...
+           }
+           else{
+               //! add here the part where i store the data (on the first 5 positions of the array i store the seached key)
+               // * use that array[i] on a address saving array so i can answer via UDP(basicly make the i correspond and that way i know 
+               // * that if the n in the message (i of the array) is less than 5 then i need to grab the udp address
+               sprintf(buff,"%s %s %s %s %s %s","RSP",command_details->searched_key, /*this n right here needs to be changed*/
+                    command_details->n,me.key, me.IP, me.PORT);
+                if(tcp_or_udp){
+                    // tcp aka a simple write to the succ fd
+                }
+                else{
+                   // udp aka sendto chord_fd
+                }
+           }  
         }    
     }else if(strcmp("EPRED",command_details->command)==0){
         split_str_nd_copy_to_new_location(&str_to_split,pred->key);
         split_str_nd_copy_to_new_location(&str_to_split,pred->IP);
         split_str_nd_copy_to_new_location(&str_to_split,pred->PORT);
+        //todo force a pentry after this message is recieved 
     }
     free(str_to_free);
 }
@@ -503,7 +527,7 @@ void  init_tcp_server(int *listen_fd, int PORT){
 	// assign IP, PORT
 	tcp_servaddr.sin_family = AF_INET;
 	tcp_servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	tcp_servaddr.sin_port = htons(PORT);//! mandar por argumento
+	tcp_servaddr.sin_port = htons(PORT);
 
 	// Binding newly created socket to given IP and verification
 	if ((bind(*listen_fd, (SA*)&tcp_servaddr, sizeof(tcp_servaddr))) != 0) {
@@ -556,12 +580,13 @@ int main(int argc, char *argv[])
     time_t entered_ring= time(NULL);
     node me, pred,succ, temp_node,  chord;
     command_details_t command_details;
-    bool in_a_ring = false;
+    bool in_a_ring = false, tcp_or_udp;
     char fcommand[100];
     SA_in tcp_client_addr, udp_client_addr,tcp_servaddr;
     //todo mudar variaveis para definitivas no tpc e udp
     socklen_t len = sizeof(SA_in);
-    char buff[100];    
+    char buff[100];
+    int check;    
     // VAR INIT
     
     start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv,fcommand,buff,&mask,&mask_copy);
@@ -618,8 +643,26 @@ int main(int argc, char *argv[])
             }
                 
             else if(*fcommand =='f' ){
-                if(find_key(fcommand, me.key, succ.key,&command_details)){// verifies if it is mine or not
-                    //send_message()
+
+                //todo check if i can combine all this crap into a single function outside of main (getting rid of the extra variables)
+                //* such as check and tcp or udp wich can be replaced by a fuction returning 1 or 0 depending on the case 
+                // for now it shall do the job still need to implement all the message sending and writting the output 
+                // on the mine/pred key (find a good way to present it to the user !)
+                split_find_command(fcommand, me.key, succ.key,&command_details);
+                check = common_code_FND_EFND(1,me,succ,pred,chord,command_details,&tcp_or_udp);
+                if(check==1){// verifies if it is mine or not
+                    
+                    //key is mine
+                }else if (check ==0){
+                    //key is from my pred
+                }
+                else{// * starts a FND so need to save the searched key in the array and update the n
+                    if(tcp_or_udp){
+                        // is tcp to succ
+                    }
+                    else{
+                        //is via udp to chord 
+                    }
                 }
             }
                 
@@ -712,7 +755,6 @@ int main(int argc, char *argv[])
                             write(tcp_s_fd,buff,sizeof(char)*100);
                             close(tcp_s_fd);                            
                         }
-                        
                     }
                     if(!in_a_ring){
                         in_a_ring=1;
