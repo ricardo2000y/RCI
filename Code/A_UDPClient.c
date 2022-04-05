@@ -37,7 +37,25 @@ void func(int sockfd, int mode,struct sockaddr_in *servaddr){
     }
     
 }
-
+void send_recieve_udp_message(bool mode,int sock_fd, SA_in* servaddr, char* buff){
+	int n;
+    socklen_t len = sizeof(*servaddr);
+    if(mode){
+        sendto(sockfd, buff, strlen(buff),
+            MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
+        n = recvfrom(sockfd, buff, MAXLINE, 
+            MSG_WAITALL, (struct sockaddr *) servaddr,&len);
+        //* here we are recieving an ACK size is 3 or 4 so not going to use buff (?)
+    
+    }else{
+        n = recvfrom(sockfd, buff, MAXLINE, 
+        MSG_WAITALL, (struct sockaddr *) servaddr,&len);
+        sendto(sockfd,"ACK\0", strlen("ACK\0"),
+            MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
+        //* here we are SENDING an ACK size is 3 or 4 so not going to use buff (?)
+    }
+}
+//todo mudar o nome para algo que diga explicitamente UDP_chord
 void init_udp_client(int *sockfd,SA_in*servaddr, char*port_ ,char* addr/*aqui addiciona-se a info do server*/){
      // Creating socket file descriptor
     in_addr_t  ip;
@@ -66,7 +84,8 @@ int main(int argc, char* argv[]) {
     //struct sockaddr_in     servaddr;
     SA_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
-    init_udp_client(&sockfd,&servaddr, argv[3],argv[2]);
+    init_udp_client(&sockfd/*&chord_fd*/,&servaddr/*&chord_addr*/,/*chord.port*/ argv[3],/*chord.IP*/argv[2]);
+    
     while(1){
         func(sockfd,0,&servaddr);
         func(sockfd,1,&servaddr);

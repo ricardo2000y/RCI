@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Apr  2 16:23:07 2022
+# Make data base, printed on Tue Apr  5 14:20:04 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-61c50086-7a57-493e-9734-e1f44934d157.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-6368cc26-886d-42e4-8460-0afafaa30e20.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -81,7 +81,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/10_interop
+WSL_INTEROP = /run/WSL/13_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -95,7 +95,7 @@ OBJS_CTRASH = $(addprefix , $(C_TRASH))
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # makefile (from 'Makefile', line 31)
@@ -178,8 +178,10 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
+# environment
+MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
+# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
 
 # Pattern-specific Variable Values
 
@@ -276,13 +278,13 @@ ring.o: ring.c
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
 cleanall: clean cleanExe
- 
-make: *** No rule to make target 'all'.  Stop.
-
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 
 udpc: udpclient
 #  Phony target (prerequisite of .PHONY).
@@ -326,6 +328,6 @@ tcpclient: A_tcp_client.c tcpclient
 # strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
 # Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Sat Apr  2 16:23:07 2022
+# Finished Make data base on Tue Apr  5 14:20:04 2022
 
  

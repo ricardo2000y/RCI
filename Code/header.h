@@ -39,4 +39,7 @@ typedef struct{
     socklen_t addr_len;
 }message_info_t;
 
-
+typedef struct client_addr_t{
+    char addr[INET_ADDRSTRLEN];
+    int port;
+}client_addr_t;
