@@ -6,18 +6,38 @@
 // // 
 // *
 
-//! 
-//TODO on udp recieved messages remove the \n by default !  use strcspn(): (basicly find the position of the \n and put a \0 there 
-//*^code is used in tcp so just implement for udp aswell ! 
-// implica implementar pelo menos tcp código escrito de forma independente ao ring para já
-//? para bentry têm que ser feito o store do address que contactou (por causa das chords)
-//* guardar num addr_bentry ou algo do genero!
+//// done list 
+/*
+pentry for several clients
+esqueleto do find 
+! falta meter as respostas tcp/upd a funcionar mas isto é relativamente fácil (especialmente para a RSP/FND)
+! falta o terminar o processo de EPRED para fazer um pentry depois de receber a mensagem
+^ só preciso de manda um self 
 
-//TODO1: pesquisa de chave mensagens usadas 
-//*FND k n i i.IP i.port e RSP k n i i.IP i.port
-//todo array/ struct to save udp clients addresses (maybe also saving their key(or associate a number to them idk))
+*/
+
+//!extra
+/* ideia
+ have a buffer with smaller size for the case of reading half of a command on the 
+buf and when that happens store the rest of the buf on the buffer, memset it and do a read 
+to get extra stuff, pass the buff to this buffer and deal with the commands there (?)
+~might make program get stuck on this loop per say incase someone is spamming commands ... 
+but still gonna need the buffer to store the remainder of the message recieved 
+
+*/
+
+//todo buff recieves several messages and do a while cycle to process such messages (split them on the \0 and work with a command at a time)
+// * needs to have a check if complete command, if command is not complete it does another read ... etc this i know the logic to but it's extra as not explicitly needed
+
+//!extra
+
+//! 
+
+
+//todo array for bentry clients addresses (maybe also saving their key(or associate a number to them idk))
+//* easy way i thought was to save 
 //  max number of udp clients to my server that i need to save is the ones from outise the ring trying to connect so maybe 5 if i see we need more up to 10 or just say server is full atm try later idk? 
-// todo make a list of stuff that needs a timeout 
+//? todo make a list of stuff that needs a timeout 
 //todo criar array com número de sequencia 
 //? verificar novamente o formato do comando para garantir que no RSP o searched key é o destinatário(quem iniciou a procura)
 //* onde k é o procurado// destinatario
@@ -25,38 +45,36 @@
 //* i i.ip i.port // info de quem iniciou a procura/resposta
 //* se tcp meter \n no final da string, se UDP responder com ACK
 // 1 2 3 4 5 6 
-//TODO2: saída e entrada de um  nó
-//! para saida verificar se EOF é lido
+//TODO2: saída de um  nó
+// está a falha apenas 1 nó recebe a informação da saída
 //* PRED pred pred.IP pred.port\n ///de me para 
 //* SELF i i.ip i.port\n ///de me para pred
 // 1 2 3 4
 //TODO3:descoberta de posição no anel
-// para este basta apenas um check por isso no biggies :D 
-// because se receber um E e estiver no anel significa EFND k
-// else é i EPRED DE RESPOSTA :D
-//*EFND k (udp) Realizado aquando da bentry
-//* EPRED pred pred.ip pred.port
-//* ACK
-// recieves 2 arguments
-// starts a find with 6 arguments 
-//todo4: implement the code for all the ^actions that converts the info into a string using the following code as eg.
-//todo now implement the tcp client and udp client and set up 2/3 messages to test
+//* adicionar os write/ sendto nos respetivos locais 
+//? talvez até dentro do common node eliminando uma variavel extra(?) 
+//* array de inteiros tamanho +- 100 
+//* array de client_addr_t tamanho +-5 talvez 10 
+//* regra para guardar 
+
+
+
 
 //! making quick resume of the connections so i don't lose myself on making the functions
 /*
 todo TCP
 
 tcp_c_fd  //  *  connects to the pred 
-sends:SELF
+//sends:SELF
 recieves: PRED,FND,RSP ---
 //////////////////////////////////
 accepted_fd //  * accepts a connected from a new client(aka new succ)
-sends: nothing //?
-recieves:SELF(then binds this to the tcp_s_fd)
+//sends: nothing //?
+//recieves:SELF(then binds this to the tcp_s_fd)
 //////////////////////////////////
 tcp_s_fd//  * connected to the succ
 sends:PRED, FND, RSP
-recieves:nothing //?  
+//recieves:nothing //?  
 
 todo UDP
 udp_c_fd(//?chord_fd)  
@@ -300,7 +318,8 @@ void leave_ring(node me, node* succ, node* pred, char* buff,int* chord_fd,int* t
     }
     memset(pred, 0,sizeof(node));
     memset(succ, 0,sizeof(node));
-    //todo put close all sockets inside a func
+    //todo put close all sockets inside a func 
+    //? pbbly unecessary
     if (*chord_fd){
         close(*chord_fd);
         *chord_fd=0;
@@ -495,9 +514,9 @@ int process_FND_RSP(char* buff,node me,node succ,node pred,node chord){//? maybe
     return 0;
 }
 //! here 
-
+//todo wrap up this funcion todo ahead
 void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, command_details_t *command_details,char* buff){
-//todo all this func is where i stopped for now 
+
     char* str_to_free ,*str_to_split;
     bool tcp_or_udp;
     int check;
@@ -641,7 +660,7 @@ int main(int argc, char *argv[])
     bool in_a_ring = false, tcp_or_udp;
     char fcommand[100];
     SA_in tcp_client_addr, chord_addr,tcp_servaddr, udp_server_addr,udp_client_addr;
-    //todo mudar variaveis para definitivas no tpc e udp
+    //todo adicionar uma var tamanho size_t = sizeof(char)*100;(para usar quando recebe/manda mensagens)
     socklen_t len = sizeof(SA_in);
     char buff[100];
     int check;    
@@ -667,7 +686,7 @@ int main(int argc, char *argv[])
                     entered_ring = time(NULL);
                     new(&me, &succ,&pred,&temp_node);
                 }
-                else printf("Already in a ring u dumbass\n");
+                else printf("Already in a ring\n");
             }
                 
             else if (*fcommand =='b' ){/*enters the ring knowing only one random node*/
@@ -684,7 +703,8 @@ int main(int argc, char *argv[])
             else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/                
                 split_command(fcommand,&command_details);/*need to add a checker for valid command so it can exit nicely*/
                 memset(&chord, 0,sizeof(node));
-                //todo bind a udp client to the socket
+                
+                //todo bind a udp client to the socket (init udp_client as using chord_fd)
 
             }
                 
@@ -739,7 +759,7 @@ int main(int argc, char *argv[])
             else if(*fcommand =='e' ){// exit
                 exit_routine(&chord_fd,&tcp_c_fd,&accepted_socket,&listen_fd, &udp_fd);     
                 //exit => close all sockets and return 0
-            }/*problema porque e é short form para exit && echord prof tem que mudar*/
+            }
 
             else{
             printf("Command given, \" %s\",  is not valid.\n", fcommand);
@@ -757,20 +777,17 @@ int main(int argc, char *argv[])
         
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
-           //TODO check if n is bigger than -1 and check if buff is EOF(aka 0) if 0 then close the socket and proceed
-           //might not close here cus it's the server !
-            n = recvfrom(udp_fd, (char *)buff, 1000, 
-                MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,
-                &len);
-            sendto(udp_fd, "ACK\0", strlen("ACK\0"), 
-                MSG_CONFIRM, (const struct sockaddr *) &udp_client_addr,
-                    len);
-            buff[strcspn(buff, "\n")] = 0;
-            if((*buff=='F')||(*buff=='R')){
-                process_FND_RSP(buff,me,succ,pred,chord);
-            }
-            else if (*buff=='E'){
-                process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff);
+            if((n = recvfrom(udp_fd, (char *)buff, 1000, MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,&len)) !=0){
+                sendto(udp_fd, "ACK\0", strlen("ACK\0"), 
+                    MSG_CONFIRM, (const struct sockaddr *) &udp_client_addr,
+                        len);
+                buff[strcspn(buff, "\n")] = 0;
+                if((*buff=='F')||(*buff=='R')){
+                    process_FND_RSP(buff,me,succ,pred,chord);
+                }
+                else if (*buff=='E'){
+                    process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff);
+                }
             }
         }
         else if(accepted_socket && FD_ISSET(accepted_socket, &mask)){
@@ -821,7 +838,7 @@ int main(int argc, char *argv[])
                 }
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
-                if(*buff=='P'){//* might be on the wrong place
+                if(*buff=='P'){
                     split_self_pred_m(buff,&pred,"PRED",&command_details);
                     sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
                     close(tcp_c_fd);
@@ -844,13 +861,6 @@ int main(int argc, char *argv[])
 }
 
 //! pentry is buggy not sure why 
-/* ideia have a buffer with smaller size for the case of reading half of a command on the 
-buf and when that happens store the rest of the buf on the buffer, memset it and do a read 
-to get extra stuff, pass the buff to this buffer and deal with the commands there (?)
-~might make program get stuck on this loop per say incase someone is spamming commands ... 
-but still gonna need the buffer to store the remainder of the message recieved 
 
-
-*/
 
 
