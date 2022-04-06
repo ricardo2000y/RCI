@@ -624,7 +624,7 @@ void  init_tcp_server(int *listen_fd, int PORT){
 }
 
 void  init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
-	SA_in tcp_servaddr;
+	//SA_in tcp_servaddr;
 // Creating socket file descriptor
     if ( (*udp_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");

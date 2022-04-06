@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Apr  5 14:20:04 2022
+# Make data base, printed on Wed Apr  6 14:53:11 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-6368cc26-886d-42e4-8460-0afafaa30e20.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-059bd8cd-24ee-43cb-8178-6cd49d84df3c.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -81,7 +81,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/13_interop
+WSL_INTEROP = /run/WSL/12_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -95,7 +95,7 @@ OBJS_CTRASH = $(addprefix , $(C_TRASH))
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # makefile (from 'Makefile', line 31)
@@ -278,13 +278,13 @@ ring.o: ring.c
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
 cleanall: clean cleanExe
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
- 
-make: *** No rule to make target 'all'.  Stop.
-
 
 udpc: udpclient
 #  Phony target (prerequisite of .PHONY).
@@ -328,6 +328,6 @@ tcpclient: A_tcp_client.c tcpclient
 # strcache performance: lookups = 70 / hit rate = 61%
 # hash-table stats:
 # Load=27/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Tue Apr  5 14:20:04 2022
+# Finished Make data base on Wed Apr  6 14:53:11 2022
 
  
