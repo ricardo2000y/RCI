@@ -6,6 +6,9 @@
 // // 
 // *
 
+
+//todo strlen(buff);
+//* not buff
 //// done list 
 /*
 pentry for several clients
@@ -307,14 +310,14 @@ void pentry(char* fcommand,command_details_t* command_details,node* pred,node* m
     strcpy(pred->key,command_details->key);
     strcpy(pred->PORT,command_details->PORT);
     sprintf(buff,"%s %s %s %s\n","SELF", me->key,me->IP,me->PORT);
-    tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff,message_size);
+    tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff,strlen(buff));
 }
 
 void leave_ring(node me, node* succ, node* pred, char* buff,int* chord_fd,int* tcp_c_fd, int* accepted_socket, int* tcp_s_fd ,fd_set* mask_copy, size_t message_size){
     //leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd);
     if(strcmp(me.key, succ->key)!=0){
         sprintf(buff,"%s %s %s %s\n","PRED", pred->key,pred->IP,pred->PORT);
-        write(*tcp_s_fd,buff,message_size);
+        write(*tcp_s_fd,buff,strlen(buff));
     }
     memset(pred, 0,sizeof(node));
     memset(succ, 0,sizeof(node));
@@ -671,8 +674,6 @@ int main(int argc, char *argv[])
     int my_searches[100];
     client_addr_t EFND_saved_addr[5];
     // VAR INIT
-    func();
-    func1();
     start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv,fcommand,buff,&mask,&mask_copy,my_searches,message_size,EFND_saved_addr);
     port = strtol(me.PORT, NULL, 10);
     init_tcp_server(&listen_fd, port);
@@ -778,8 +779,7 @@ int main(int argc, char *argv[])
                 printf("Server accept failed.\n");
                 exit(0);
             }      
-        }   
-        
+        }          
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
             if((n = recvfrom(udp_fd, (char *)buff, message_size, MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,&len)) !=0){
@@ -847,7 +847,7 @@ int main(int argc, char *argv[])
                     split_self_pred_m(buff,&pred,"PRED",&command_details);
                     sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
                     close(tcp_c_fd);
-                    tcp_client(&temp_tcp_c_fd,&tcp_servaddr,command_details.PORT, command_details.IP,buff,message_size);
+                    tcp_client(&temp_tcp_c_fd,&tcp_servaddr,command_details.PORT, command_details.IP,buff,strlen(buff));
                     tcp_c_fd=temp_tcp_c_fd;
                     temp_tcp_c_fd=0;
                     
@@ -865,7 +865,7 @@ int main(int argc, char *argv[])
     return 0;    
 }
 
-//! pentry is buggy not sure why 
+
 
 
 
