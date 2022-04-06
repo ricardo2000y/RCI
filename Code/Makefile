@@ -8,7 +8,7 @@
 
 # variaveis do compilador
 CC = gcc
-MODE = -g
+MODE = -g3
 CFLAGS = -Wall -pedantic -Wextra
 
 # Variaveis para limpeza de ficheiros inerentes a geracao do executavel 
@@ -24,7 +24,7 @@ PROG_NAME = $(RING_NAME)
 # Nomes para as fontes e objetos 
 
 RING_OBJS = ring.o
-RING_SOURCES = ring.c 
+RING_SOURCES = ring.c #test.c done.c
 
 TCP_CLIENT_SOURCES = A_tcp_client.c
 

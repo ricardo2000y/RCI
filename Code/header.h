@@ -14,6 +14,8 @@
 #include <sys/select.h>
 #include <time.h>
 
+
+
 #define MAX_KEY 32
 #define SOCK_PORT 6969
 #define SA struct sockaddr

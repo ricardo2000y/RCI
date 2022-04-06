@@ -33,7 +33,6 @@ but still gonna need the buffer to store the remainder of the message recieved
 
 //! 
 
-
 //todo array for bentry clients addresses (maybe also saving their key(or associate a number to them idk))
 //* easy way i thought was to save 
 //  max number of udp clients to my server that i need to save is the ones from outise the ring trying to connect so maybe 5 if i see we need more up to 10 or just say server is full atm try later idk? 
@@ -57,9 +56,6 @@ but still gonna need the buffer to store the remainder of the message recieved
 //* array de client_addr_t tamanho +-5 talvez 10 
 //* regra para guardar 
 
-
-
-
 //! making quick resume of the connections so i don't lose myself on making the functions
 /*
 todo TCP
@@ -77,7 +73,7 @@ sends:PRED, FND, RSP
 //recieves:nothing //?  
 
 todo UDP
-udp_c_fd(//?chord_fd)  
+chord_fd
 //  s* connects to a chord if one exists
 sends:FND,RSP,"ACK" //  * ACK IS ONLY WHEN IT RECIEVES A EPRED
 recieves:"ACK",EPRED
@@ -90,6 +86,14 @@ recieves:"ACK",FND,RSP, EFND//  * when EFND we need to store the addres (maybe s
 //! making quick resume of the connections so i don't lose myself on making the functions
 
 //todo search  for key
+/*static n = 5;
+if (n == 99)
+    n=5;
+        while(array[n]!=-1){
+            n++;
+        }
+n++*/
+
 //! notes on search a key 
 // array que guarda um searched_key number associado à posição da array(mete a -1 quando receber a resposta)
 // ou seja primeira busca iniciada no meu no há de ser na array[0]=seached_key
@@ -112,10 +116,7 @@ void add_client(client_addr_t * clients_data, int client, SA_in client_addr) {
     inet_ntop( AF_INET, &addr_to_store, clients_data[client].addr, INET_ADDRSTRLEN );
     clients_data[client].port = ntohs(client_addr.sin_port);
     free(to_free);
-
 }
-
-
 
 // gets line from stdin given by user
 void get_info_from_client( char* fcommand){
@@ -188,7 +189,6 @@ void split_str_nd_copy_to_new_location(char** str_to_split,char* str_to_save){
 
 // splits the command given by user saving it in a structure while checking if the command is valid
 void split_command(char * fcommand, command_details_t* command_details){
-    //? malloc of the strings inside command is needed or not? 
     memset(command_details,0,sizeof(command_details_t));
     char* str_to_free ,*str_to_split;
     str_to_free=str_to_split=strdup(fcommand);
@@ -211,7 +211,7 @@ void copy_node_info(node *origin, node *copy){
     strcpy(copy->PORT,origin->PORT);
 }
 
-void tcp_client(int *tcp_c_fd,SA_in *tcp_servaddr, char * port_, char*addr, char* message){
+void tcp_client(int *tcp_c_fd,SA_in *tcp_servaddr, char * port_, char*addr, char* message,size_t message_size){
     if ( (*tcp_c_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
         perror("socket creation failed");
         exit(0);
@@ -233,7 +233,7 @@ void tcp_client(int *tcp_c_fd,SA_in *tcp_servaddr, char * port_, char*addr, char
 	else
 		printf("Connected to the server.\n");
         //? maybe no write here and just do it outside so it's explicit
-    write(*tcp_c_fd,message, sizeof(char)*100);
+    write(*tcp_c_fd,message, message_size);
 
 }
 
@@ -262,21 +262,21 @@ void init_udp_client(int* sockfd,SA_in* servaddr, char* port_ch ,char* addr){
     
 }
 
-void send_recieve_udp_message(bool mode,int sock_fd, SA_in* servaddr, char* buff){
+void send_recieve_udp_message(bool mode,int sock_fd, SA_in* servaddr, char* buff,size_t message_size){
 	int n;
     socklen_t len = sizeof(*servaddr);
-    size_t buff_size = sizeof(char)*100;
+    
     
 
     if(mode){
         sendto(sock_fd, buff, strlen(buff),
             MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
-        n = recvfrom(sock_fd, buff, buff_size, 
+        n = recvfrom(sock_fd, buff, message_size, 
             MSG_WAITALL, (struct sockaddr *) servaddr,&len);
         //* here we are recieving an ACK size is 3 or 4 so not going to use buff (?)
     
     }else{
-        n = recvfrom(sock_fd, buff, buff_size, 
+        n = recvfrom(sock_fd, buff, message_size, 
         MSG_WAITALL, (struct sockaddr *) servaddr,&len);
         sendto(sock_fd,"ACK\0", strlen("ACK\0"),
             MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
@@ -301,20 +301,20 @@ void bentry_routine(char* fcommand, command_details_t* command_details,int* chor
 }
 
 //routine for pentry splitting the command till sending the SELF
-void pentry(char* fcommand,command_details_t* command_details,node* pred,node* me,char* buff,int* tcp_c_fd,SA_in* tcp_servaddr){
+void pentry(char* fcommand,command_details_t* command_details,node* pred,node* me,char* buff,int* tcp_c_fd,SA_in* tcp_servaddr, size_t message_size){
     split_command(fcommand,command_details);   
     strcpy(pred->IP,command_details->IP);
     strcpy(pred->key,command_details->key);
     strcpy(pred->PORT,command_details->PORT);
     sprintf(buff,"%s %s %s %s\n","SELF", me->key,me->IP,me->PORT);
-    tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff);
+    tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff,message_size);
 }
 
-void leave_ring(node me, node* succ, node* pred, char* buff,int* chord_fd,int* tcp_c_fd, int* accepted_socket, int* tcp_s_fd ,fd_set* mask_copy){
+void leave_ring(node me, node* succ, node* pred, char* buff,int* chord_fd,int* tcp_c_fd, int* accepted_socket, int* tcp_s_fd ,fd_set* mask_copy, size_t message_size){
     //leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd);
     if(strcmp(me.key, succ->key)!=0){
         sprintf(buff,"%s %s %s %s\n","PRED", pred->key,pred->IP,pred->PORT);
-        write(*tcp_s_fd,buff,sizeof(char)*100);
+        write(*tcp_s_fd,buff,message_size);
     }
     memset(pred, 0,sizeof(node));
     memset(succ, 0,sizeof(node));
@@ -379,18 +379,19 @@ void split_find_command(char * fcommand,char* me, char* succ, command_details_t*
 
 //starting routine gets the argv and checks it's validity storing it in me
 void start_routine(node* me, node*pred, node* succ,node* temp_node,node* chord,command_details_t* command_details,
-                    char** argv,char* fcommand,char* buff,fd_set* mask,fd_set* mask_copy, char* my_searches){
+                    char** argv,char* fcommand,char* buff,fd_set* mask,fd_set* mask_copy, int* my_searches, size_t message_size,client_addr_t* EFND_saved_addr){
     memset(me,0,sizeof(node));
     memset(pred, 0,sizeof(node));
     memset(succ, 0,sizeof(node));
     memset(temp_node,0,sizeof(node));
     memset(chord,0,sizeof(node));
     memset(command_details, 0,sizeof(command_details_t));
-    memset(fcommand,0,sizeof(char)*100);
-    memset(buff,0,sizeof(char)*100);
-    memset(my_searches,0,sizeof(char)*100);
+    memset(fcommand,0,message_size);
+    memset(buff,0,message_size);
+    memset(my_searches,-1,sizeof(int)*100);
     memset(mask,0,sizeof(fd_set));
     memset(mask_copy,0,sizeof(fd_set));   
+    memset(EFND_saved_addr,0,sizeof(client_addr_t)*5);
     strcpy(me->key,argv[1]);
     strcpy(me->IP,argv[2]);
     strcpy(me->PORT,argv[3]);
@@ -438,17 +439,9 @@ void split_self_pred_m(char*buff, node * node, char* compare,command_details_t* 
 // on the variable (bool one) true = tcp false = udp
 //? possibility for this to also deal with finds? 
 // if so is possible change type to int on the mode and have 3  modes maybe ? 
-int common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, command_details_t command, bool* tcp_or_udp){
+int common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, command_details_t command){
     int succ_distance =check_distance(succ.key,command.searched_key);
     int me_distance= check_distance(me.key,command.searched_key);
-    
-    if(chord.PORT!= 0) {
-        if (succ_distance >= check_distance(chord.key,command.searched_key)){
-            *tcp_or_udp =0;
-        } 
-        
-    }
-    else *tcp_or_udp =1;
     
     if(mode){
         if(check_distance(pred.key,command.searched_key)<= me_distance){
@@ -466,29 +459,22 @@ int common_code_FND_EFND(bool mode,node me, node succ, node pred, node chord, co
 
 
 //! working late so need to recheck + comment from here to
-int process_FND_RSP(char* buff,node me,node succ,node pred,node chord){//? maybe pass command as arg so i can have access to it outside this func(most likely + easy change so for now i'll keep like is)
+void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_fd, int udp_fd, size_t message_size,socklen_t len){//? maybe pass command as arg so i can have access to it outside this func(most likely + easy change so for now i'll keep like is)
    //todo pass the fd's and the array that stores both addresses and the key
    //! this function will stop returning 0,2,1 and do everything inside 
     command_details_t command;
-    char str[100] ;
+    char str[100],ack[4];
     strcpy(str,buff);
     split_FND_RSP(&command,str);
-    bool tcp_or_udp;
+   
     int check,i=strtol(command.n, NULL, 10);
-
     if (strcmp(command.command,"FND")==0){
-        check=common_code_FND_EFND(false,me,succ,pred,chord,command,&tcp_or_udp);
-        if (check==0){
+        check = common_code_FND_EFND(false,me,succ,pred,chord,command);
+        if (check==1){
             // key is mine 
             sprintf(buff,"%s %s %s %s %s %s","RSP",command.searched_key, command.n,me.key ,me.IP, me.PORT);
-            if(tcp_or_udp){
-                // tcp aka a simple write to the succ fd
-            }
-            else{
-                // udp aka sendto chord_fd
-            }
+            
         }
-        
     }
     else if(strcmp(command.command,"RSP")==0){
         if (strcmp(me.key,command.searched_key)==0){
@@ -499,63 +485,81 @@ int process_FND_RSP(char* buff,node me,node succ,node pred,node chord){//? maybe
             if(i<5){
                 //this key search was started by a EFND
             }
-            return 3;
-        }
-        //!working on this part some of the code might not be needed at all 
-        if(chord.PORT==0){
-            if(check_distance(chord.key,command.searched_key)< check_distance(succ.key,command.searched_key )){
-                //strcat(buff,"\n");
-                return 2;//! for now 1 = tcp
-            }
-            return 1;
             
         }
     }
-    return 0;
+    
+    if(chord.PORT!= 0) {
+        if (check_distance(succ.key,command.searched_key ) >= check_distance(chord.key,command.searched_key)){
+            sendto(udp_fd,buff,message_size,MSG_WAITALL,(struct sockaddr*)NULL,len);
+            recv(udp_fd,ack, 4,0);
+        } 
+        else{
+            write(tcp_fd,buff,message_size);
+        }
+    }
+    
 }
+
+void answer_to_a_EFND(client_addr_t* address,int udp_s_fd, char* buff,size_t message_size,socklen_t len){
+    SA_in cli_addr;
+    char ack[4];
+    cli_addr.sin_family =AF_INET;
+    inet_pton( AF_INET ,address->addr, (in_addr_t*) &cli_addr.sin_addr.s_addr );
+	cli_addr.sin_port = htons(address->port);
+    sendto(udp_s_fd, buff,message_size,0,(const struct sockaddr * ) &cli_addr,len);
+    recv(udp_s_fd,ack,4,0);
+}
+ //answer_to_a_EFND(address,udp_s_fd,buff);
+                //servaddr->sin_family = AF_INET;
 //! here 
 //todo wrap up this funcion todo ahead
-void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, command_details_t *command_details,char* buff){
+void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, command_details_t *command_details,
+                        char* buff, int tcp_fd, int chord_fd,int udp_s_fd,client_addr_t* address,int* searched, size_t message_size,socklen_t len){
 
-    char* str_to_free ,*str_to_split;
-    bool tcp_or_udp;
+    char* str_to_free ,*str_to_split, ack[4];
     int check;
     str_to_free=str_to_split=strdup(buff);
     split_str_nd_copy_to_new_location(&str_to_split,command_details->command);
     if (in_a_ring){
         if (strcmp("EFND",command_details->command)==0){
-           check =common_code_FND_EFND(true,me,succ,*pred,chord,*command_details,&tcp_or_udp);
-           if(check==1){
+           check =common_code_FND_EFND(true,me,succ,*pred,chord,*command_details);
+           if(check==0){
                // respond via UDP with my info 
-                sprintf(buff,"%s %s %s %s","EPRED",me.key, me.IP,me.PORT);
-                //! check if i just add the \n here
-                //! missing the sendto...
-           }
-           else if(check==0){
+                sprintf(buff,"%s %s %s %s\n","EPRED",me.key, me.IP,me.PORT);
+                answer_to_a_EFND(address,udp_s_fd,buff,message_size,len);
+                //servaddr->sin_family = AF_INET;
+            }
+           else if(check==1){
                //respond via UDP with my pred info
-               sprintf(buff,"%s %s %s %s","EPRED",pred->key, pred->IP,pred->PORT);
-               //! check if i just add the \n here
-               //! missing the sendto...
-           }
+                sprintf(buff,"%s %s %s %s\n","EPRED",pred->key, pred->IP,pred->PORT);
+            }
            else{
-               //! add here the part where i store the data (on the first 5 positions of the array i store the seached key)
-               // * use that array[i] on a address saving array so i can answer via UDP(basicly make the i correspond and that way i know 
-               // * that if the n in the message (i of the array) is less than 5 then i need to grab the udp address
-               sprintf(buff,"%s %s %s %s %s %s","FND",command_details->searched_key, /*this n right here needs to be changed*/
+                //! add here the part where i store the data (on the first 5 positions of the array i store the seached key)
+                // * use that array[i] on a address saving array so i can answer via UDP(basicly make the i correspond and that way i know 
+                // * that if the n in the message (i of the array) is less than 5 then i need to grab the udp address
+                sprintf(buff,"%s %s %s %s %s %s","FND",command_details->searched_key, /*this n right here needs to be changed*/
                     command_details->n,me.key, me.IP, me.PORT);
-                if(tcp_or_udp){
-                    // tcp aka a simple write to the succ fd
-                }
-                else{
-                   // udp aka sendto chord_fd
-                }
+                if(chord.PORT!= 0) {
+                    if (check_distance(succ.key,command_details->searched_key ) >= check_distance(chord.key,command_details->searched_key)){
+                        sendto(chord_fd,buff,message_size,MSG_WAITALL,(struct sockaddr*)NULL,len);
+                        //? how to timeout this? 
+                        recv(chord_fd,ack, 4,0);
+                    } 
+                    else{
+                        write(tcp_fd,buff,message_size);
+                    }
+                }    
            }  
-        }    
+        }   
+
     }else if(strcmp("EPRED",command_details->command)==0){
         split_str_nd_copy_to_new_location(&str_to_split,pred->key);
         split_str_nd_copy_to_new_location(&str_to_split,pred->IP);
         split_str_nd_copy_to_new_location(&str_to_split,pred->PORT);
         //todo force a pentry after this message is recieved 
+        //* put a self here send via a new tcp_c_fd to pred
+
     }
     free(str_to_free);
 }
@@ -660,20 +664,22 @@ int main(int argc, char *argv[])
     bool in_a_ring = false, tcp_or_udp;
     char fcommand[100];
     SA_in tcp_client_addr, chord_addr,tcp_servaddr, udp_server_addr,udp_client_addr;
-    //todo adicionar uma var tamanho size_t = sizeof(char)*100;(para usar quando recebe/manda mensagens)
+    size_t message_size =sizeof(char)*100;
     socklen_t len = sizeof(SA_in);
     char buff[100];
     int check;    
-    char my_searches[100];
+    int my_searches[100];
+    client_addr_t EFND_saved_addr[5];
     // VAR INIT
-    
-    start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv,fcommand,buff,&mask,&mask_copy,my_searches);
+    func();
+    func1();
+    start_routine(&me,&pred,&succ,&temp_node,&chord,&command_details,argv,fcommand,buff,&mask,&mask_copy,my_searches,message_size,EFND_saved_addr);
     port = strtol(me.PORT, NULL, 10);
     init_tcp_server(&listen_fd, port);
     init_udp_server(&udp_fd, port,&udp_server_addr);
     
     for(;;){
-        memset(buff,0,sizeof(char)*100);
+        memset(buff,0,message_size);
         mask_init(&mask_copy,&maxfd,udp_fd,listen_fd,tcp_s_fd,chord_fd,accepted_socket,tcp_c_fd);
         mask = mask_copy;
         select(maxfd+1, &mask, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
@@ -696,7 +702,7 @@ int main(int argc, char *argv[])
                 
             else if (*fcommand == 'p' ){/*enters the ring know it's pred_key*/
                 if (in_a_ring== false){
-                    pentry(fcommand,&command_details,&pred,&me,buff,&tcp_c_fd,&tcp_servaddr);
+                    pentry(fcommand,&command_details,&pred,&me,buff,&tcp_c_fd,&tcp_servaddr,message_size);
                 }
             }
                 
@@ -728,7 +734,7 @@ int main(int argc, char *argv[])
                 // for now it shall do the job still need to implement all the message sending and writting the output 
                 // on the mine/pred key (find a good way to present it to the user !)
                 split_find_command(fcommand, me.key, succ.key,&command_details);
-                check = common_code_FND_EFND(1,me,succ,pred,chord,command_details,&tcp_or_udp);
+                check = common_code_FND_EFND(1,me,succ,pred,chord,command_details);
                 if(check==1){// verifies if it is mine or not
                     printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,me.key,me.IP, me.PORT);
                     //key is mine
@@ -737,21 +743,20 @@ int main(int argc, char *argv[])
                     //key is from my pred
                 }
                 else{// * starts a FND so need to save the searched key in the array and update the n
-                    if(tcp_or_udp){
+                   /* if(tcp_or_udp){
                         // is tcp to succ
-                        sprintf(buff,"%s %s %d %s %s %s","FND",command_details.searched_key, /*this n right here needs to be changed*/
-                                0,me.key, me.IP, me.PORT);
-                        write(tcp_s_fd, buff, sizeof(char)*100);
+                        sprintf(buff,"%s %s %d %s %s %s","FND",command_details.searched_key, //this n right here needs to be changed                                0,me.key, me.IP, me.PORT);
+                        write(tcp_s_fd, buff, message_size);
                     }
                     else{
-                        //is via udp to chord 
-                    }
+                        //is via udp to chord //
+                    }*/
                 }
             }
                 
             else if(*fcommand =='l'){
                if(in_a_ring){
-                   leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd,&mask_copy);
+                   leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd,&mask_copy,message_size);
                     in_a_ring= false;
                }
             }
@@ -777,22 +782,22 @@ int main(int argc, char *argv[])
         
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
-            if((n = recvfrom(udp_fd, (char *)buff, 1000, MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,&len)) !=0){
+            if((n = recvfrom(udp_fd, (char *)buff, message_size, MSG_WAITALL, ( struct sockaddr *) &udp_client_addr,&len)) !=0){
                 sendto(udp_fd, "ACK\0", strlen("ACK\0"), 
                     MSG_CONFIRM, (const struct sockaddr *) &udp_client_addr,
                         len);
                 buff[strcspn(buff, "\n")] = 0;
                 if((*buff=='F')||(*buff=='R')){
-                    process_FND_RSP(buff,me,succ,pred,chord);
+                    process_FND_RSP(buff,me,succ,pred,chord,tcp_s_fd,chord_fd,message_size,len);
                 }
                 else if (*buff=='E'){
-                    process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff);
+                    process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff,tcp_s_fd,chord_fd,udp_fd,EFND_saved_addr,my_searches,message_size,len);
                 }
             }
         }
         else if(accepted_socket && FD_ISSET(accepted_socket, &mask)){
             FD_CLR(accepted_socket, &mask_copy);
-            if((n = read(accepted_socket, buff, sizeof(char)*100)) != 0){
+            if((n = read(accepted_socket, buff, message_size)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
                     exit(1);
@@ -806,12 +811,12 @@ int main(int argc, char *argv[])
                         if(strcmp(me.key, succ.key)==0){
                             sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
                             copy_node_info(&temp_node,&pred);
-                            tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);
+                            tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff,message_size);
                             
                         }
                         else {
                             sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                            write(tcp_s_fd,buff,sizeof(char)*100);
+                            write(tcp_s_fd,buff,message_size);
                             close(tcp_s_fd);                            
                         }
                     }
@@ -831,7 +836,7 @@ int main(int argc, char *argv[])
         }
         else if(tcp_c_fd && FD_ISSET(tcp_c_fd, &mask)){
             FD_CLR(tcp_c_fd, &mask_copy);
-            if((n = read(tcp_c_fd, buff, sizeof(char)*100)) != 0){
+            if((n = read(tcp_c_fd, buff, message_size)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
                     exit(1);
@@ -842,13 +847,13 @@ int main(int argc, char *argv[])
                     split_self_pred_m(buff,&pred,"PRED",&command_details);
                     sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
                     close(tcp_c_fd);
-                    tcp_client(&temp_tcp_c_fd,&tcp_servaddr,pred.PORT, pred.IP,buff);
+                    tcp_client(&temp_tcp_c_fd,&tcp_servaddr,command_details.PORT, command_details.IP,buff,message_size);
                     tcp_c_fd=temp_tcp_c_fd;
                     temp_tcp_c_fd=0;
                     
                 }
                 else if((*buff=='F')||(*buff=='R')){
-                    process_FND_RSP(buff,me,succ,pred,chord);
+                    process_FND_RSP(buff,me,succ,pred,chord,tcp_s_fd,chord_fd,message_size,len);
                 } 
             }
             else {
