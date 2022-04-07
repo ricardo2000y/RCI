@@ -31,7 +31,7 @@ typedef struct {
     char n[5];
     char searched_key[5];
     char key[5];
-    char IP[16];
+    char IP[INET_ADDRSTRLEN];
     char PORT[10];
 }command_details_t;
 
