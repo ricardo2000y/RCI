@@ -90,7 +90,7 @@ int main()
 	len = sizeof(SA_in);
 
 //! Codigo select
-
+/*
 	state = idle;
 	while (1) {
 
@@ -161,7 +161,7 @@ int main()
 		}
 	}
 	
-/*
+*/
 	// Accept the data packet from client and verification
 	connfd = accept(listen_fd, (SA*)&cli, &len);
 	if (connfd < 0) {
@@ -176,7 +176,7 @@ int main()
 		func(connfd);
 	}
 	
-*/
+
 	// After chatting close the socket
 	close(listen_fd);
 }
