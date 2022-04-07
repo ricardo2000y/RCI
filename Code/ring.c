@@ -444,9 +444,11 @@ void split_FND_RSP( command_details_t* command_details,char *str){
     free(str_to_free);
 }
 
-bool split_self_pred_m(char*buff, node * node, char* compare,command_details_t* command_details,char* my_key, char* succ_key,bool alone, bool in_a_ring){  
+
+//! conditions are not correct
+void split_self_pred_m(char*buff, node * node, char* compare,command_details_t* command_details){  
     char* str_to_free ,*str_to_split;
-     str_to_free = str_to_split=strdup(buff);
+    str_to_free = str_to_split=strdup(buff);
     split_str_nd_copy_to_new_location(&str_to_split,command_details->command);
     if(strcmp(command_details->command,compare)==0){
         split_str_nd_copy_to_new_location(&str_to_split,node->key);
@@ -455,9 +457,7 @@ bool split_self_pred_m(char*buff, node * node, char* compare,command_details_t* 
     } 
     int node_key =strtol(node->key, NULL, 10);
     free(str_to_free);
-    if(*compare =='P') return true; 
-    if((((strtol(my_key, NULL, 10)<node_key )&&(strtol(succ_key, NULL, 10)>node_key))||alone)||(!in_a_ring))  return false;
-    return true;
+   
 }
 
 void answer_to_a_EFND(client_addr_t* address,int udp_s_fd, char* buff,socklen_t len){
@@ -644,6 +644,9 @@ void mask_init(fd_set *mask_copy,int*maxfd,int udp_fd,int listen_fd,int chord_fd
 
 void  init_tcp_server(int *listen_fd, int PORT){
 	SA_in tcp_servaddr;
+    struct linger lin ;
+    lin.l_linger=0;
+    lin.l_onoff=1;
 	*listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (*listen_fd == -1) {
 		printf("Socket creation failed.\n");
@@ -652,7 +655,7 @@ void  init_tcp_server(int *listen_fd, int PORT){
 	else
 		printf("Socket successfully created.\n");
 	bzero(&tcp_servaddr, sizeof(tcp_servaddr));
-
+    setsockopt(*listen_fd, SOL_SOCKET, SO_LINGER, (const char *)&lin, sizeof(int));
 	// assign IP, PORT
 	tcp_servaddr.sin_family = AF_INET;
 	tcp_servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -682,12 +685,14 @@ void  init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
-       
+    struct linger lin;
+    lin.l_linger=0;
+    lin.l_onoff=1;   
     // Filling server information
     tcp_servaddr->sin_family    = AF_INET; // IPv4
     tcp_servaddr->sin_addr.s_addr = INADDR_ANY;
     tcp_servaddr->sin_port = htons(PORT);
-       
+    setsockopt(*udp_fd, SOL_SOCKET, SO_LINGER, (const char *)&lin, sizeof(int));   
     // Bind the socket with the server address
     if ( bind(*udp_fd, (const struct sockaddr *)tcp_servaddr, sizeof(*tcp_servaddr)) < 0 ){
         perror("bind failed");
@@ -707,7 +712,7 @@ int main(int argc, char *argv[])
     time_t entered_ring= time(NULL);
     node me, pred,succ, temp_node,  chord;
     command_details_t command_details;
-    bool in_a_ring = false, tcp_or_udp, alone = true;
+    bool in_a_ring = false, tcp_or_udp, one_or_two = true;
     char fcommand[100];
     SA_in tcp_client_addr, chord_addr,tcp_servaddr, udp_server_addr;
     size_t message_size =sizeof(char)*100;
@@ -857,33 +862,28 @@ int main(int argc, char *argv[])
                 printf("%s\n", buff);
                 //! check this here
                 if (*buff =='S'){
-                    alone =(strcmp(me.key, succ.key)==0);
-                    if(split_self_pred_m( buff, &temp_node,"SELF",&command_details,me.key,succ.key,alone,in_a_ring)){
-                        if(in_a_ring){
-                            if(alone){
-                                sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                                copy_node_info(&temp_node,&pred);
-                                tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);
-                                
-                            }
-                            else {
-                                sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                                write(tcp_s_fd,buff,strlen(buff));
-                                close(tcp_s_fd);                            
-                            }
+                    
+                    split_self_pred_m( buff, &temp_node,"SELF",&command_details);
+                    if(in_a_ring){
+                        if((strcmp(me.key, succ.key)==0)){
+                            sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+                            copy_node_info(&temp_node,&pred);
+                            tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);
+                            
                         }
-                        else{
-                            in_a_ring=1;
-                            entered_ring = time(NULL);
-                        } 
-                        copy_node_info(&temp_node,&succ);
-                        tcp_s_fd = accepted_socket;
-                        accepted_socket=0;   
+                        else {
+                            sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
+                            write(tcp_s_fd,buff,strlen(buff));
+                            close(tcp_s_fd);                            
+                        }
                     }
-                    else {
-                        close(accepted_socket);
-                        accepted_socket= 0;
-                    }
+                    else{
+                        in_a_ring=1;
+                        entered_ring = time(NULL);
+                    } 
+                    copy_node_info(&temp_node,&succ);
+                    tcp_s_fd = accepted_socket;
+                    accepted_socket=0;   
                 }
             }
             else {
@@ -901,8 +901,8 @@ int main(int argc, char *argv[])
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
                 if(*buff=='P'){
-                    if(strcmp(pred.IP,succ.IP)!=0){
-                        split_self_pred_m(buff,&pred,"PRED",&command_details,me.key,succ.key,false,in_a_ring);
+                    if(strcmp(me.key,succ.key)!=0){
+                        split_self_pred_m(buff,&pred,"PRED",&command_details);
                         sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
                         close(tcp_c_fd);
                         tcp_client(&temp_tcp_c_fd,&tcp_servaddr,command_details.PORT, command_details.IP,buff);
