@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Apr  7 14:42:40 2022
+# Make data base, printed on Fri Apr  8 20:16:58 2022
 
 # Variables
 
@@ -53,7 +53,7 @@ VSCODE_CWD = /mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /root/.vscode-server/bin/e18005f0f1b33c29e81d732535d8c0e47cafb0b5/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
+PATH = /root/.vscode-server/bin/8dfae7a5cd50421d10cd99cb873990460525a898/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
 # makefile (from 'Makefile', line 22)
 UDP_CLIENT_NAME = udpclient
 # environment
@@ -63,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-d4dca6f4-05ff-4ec1-8579-01ee4d89f838.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-20e93cdc-f21d-414e-bdd3-70e27e8c8d0b.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +83,7 @@ MODE = -g3
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/9_interop
+WSL_INTEROP = /run/WSL/10_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -189,9 +189,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2080, inode 35736): 14 files, no impossibilities.
+# . (device 2080, inode 35736): 15 files, no impossibilities.
 
-# 14 files, no impossibilities in 1 directories.
+# 15 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -320,12 +320,12 @@ tcpclient: A_tcp_client.c tcpclient
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 28 / storage = 250 B / avg = 8 B
-# current buf: size = 8162 B / used = 250 B / count = 28 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 29 / storage = 256 B / avg = 8 B
+# current buf: size = 8162 B / used = 256 B / count = 29 / avg = 8 B
 
-# strcache performance: lookups = 69 / hit rate = 59%
+# strcache performance: lookups = 70 / hit rate = 58%
 # hash-table stats:
-# Load=28/8192=0%, Rehash=0, Collisions=1/69=1%
-# Finished Make data base on Thu Apr  7 14:42:40 2022
+# Load=29/8192=0%, Rehash=0, Collisions=1/70=1%
+# Finished Make data base on Fri Apr  8 20:16:58 2022
 
  
