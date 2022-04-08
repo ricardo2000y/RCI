@@ -145,15 +145,15 @@ void get_info_from_client( char* fcommand){
 }
 
 //prints the current status of the client with the relevant node/ring information 
-void show_status(bool in_a_ring, node me, node succ, node pred, node chord,time_t uptime,int chord_fd){
+void show_status(bool in_a_ring, node me, node succ, node pred, node chord,time_t uptime,int chord_fd,int tpc_c_fd,int tpc_s_fd){
     system("clear");
     printf("%-15s\t%-15s\t%-15s\n\n"," "," ","STATUS");
-    printf("%-15s\t%-15s\t%-15s\t%-15s\n","     ", "KEY","IP","PORT");
+    printf("%-15s\t%-15s\t%-15s\t%-15s\t%-15s\n","     ", "KEY","IP","PORT","socket");
     printf("mine:       \t%-15s\t%-15s\t%-15s\n",me.key , me.IP,me.PORT); 
    if(in_a_ring){
-        printf("sucessor:   \t%-15s\t%-15s\t%-15s\n",succ.key , succ.IP,succ.PORT);
-        printf("predecessor:\t%-15s\t%-15s\t%-15s\n",pred.key , pred.IP,pred.PORT);
-        if(chord_fd != 0) printf("atalho:\t%-15s\t%-15s\t%-15s\n",chord.key , chord.IP,chord.PORT);
+        printf("sucessor:   \t%-15s\t%-15s\t%-15s\t%-15d\n",succ.key , succ.IP,succ.PORT,tpc_s_fd);
+        printf("predecessor:\t%-15s\t%-15s\t%-15s\t%-15d\n",pred.key , pred.IP,pred.PORT,tpc_c_fd);
+        if(chord_fd != 0) printf("atalho:\t%-15s\t%-15s\t%-15s\t%-15d\n",chord.key , chord.IP,chord.PORT,chord_fd);
         printf("--------------------------------------------------------");
         printf("\nBeen in the ring for:%ld minutes and %ld seconds\n" , uptime/60,uptime%60);
     }
@@ -317,7 +317,7 @@ void bentry_routine(char* fcommand, command_details_t* command_details,int* chor
     split_command(fcommand,command_details);
     sprintf(buff,"%s %s","EFND", key);
     init_udp_client(chord_fd,command_details->PORT,command_details->IP);
-    sendto(*chord_fd,buff,strlen(buff),MSG_CONFIRM,(struct sockaddr*)NULL,len);
+    send(*chord_fd,buff,strlen(buff),MSG_CONFIRM);
 
     recv(*chord_fd,buff,4,0);
    
@@ -525,7 +525,7 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
                 write(tcp_fd,buff,strlen(buff));
             }else{
                 //
-                sendto(chord_fd,buff,strlen(buff),MSG_CONFIRM,(struct sockaddr*)NULL,len);
+                send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
                 recv(chord_fd,ack, 4,0);
             }
         }
@@ -546,7 +546,7 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
             }
             else{
                 key = my_searches[check];
-                printf("%s %d:\n\t%s %s %s\n","Resposta ao find",key,me.key,me.IP, me.PORT);
+                printf("%s %d:\n\t%s %s %s\n","Resposta ao find",key,command.key,command.IP, command.PORT);
 
             }                   
         }else{
@@ -554,7 +554,7 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
                 write(tcp_fd,buff,strlen(buff));
             }else{
                 //strcat(buff,"\n\0");
-                sendto(chord_fd,buff,strlen(buff),MSG_CONFIRM,(struct sockaddr*)NULL,len);
+                send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
                 recv(chord_fd,ack, 4,0);
             }
         }
@@ -607,14 +607,15 @@ void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, 
             // * that if the n in the message (i of the array) is less than 5 then i need to grab the udp addres
             if(!check_free_position(my_searches,0,&check)){
                 my_searches[check] = strtol(command_details->searched_key, NULL, 10);
-                add_client(address,check,addr);
+                //add_client(address,check,addr);
+                
                 memset(buff,0,sizeof(char)*100);        
                 sprintf(buff,"%s %s %d %s %s %s","FND",command_details->searched_key, /*this n right here needs to be changed*/
                     check,me.key, me.IP, me.PORT);
                 if(tcp_or_udp) {
                     write(tcp_fd,buff,strlen(buff));
                 }else{
-                    sendto(chord_fd,buff,strlen(buff),MSG_CONFIRM,(struct sockaddr*)NULL,len);
+                    send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
                     recv(chord_fd,ack, 4,0);
                 }           
             }
@@ -794,7 +795,7 @@ int main(int argc, char *argv[])
                 
             else if(*fcommand =='s' ){// show current status
                     time_t uptime =time(NULL)- entered_ring;
-                    show_status(in_a_ring, me,succ,pred,chord,uptime,chord_fd);
+                    show_status(in_a_ring, me,succ,pred,chord,uptime,chord_fd,tcp_c_fd,tcp_s_fd);
             }
                 
             else if(*fcommand =='f' ){
@@ -824,7 +825,7 @@ int main(int argc, char *argv[])
                     }
                     else{
                         sprintf(buff,"%s %s %d %s %s %s\n","FND",command_details.searched_key,check,me.key, me.IP, me.PORT);
-                        sendto(chord_fd,buff,strlen(buff),MSG_CONFIRM,(struct sockaddr*)NULL,len);
+                        send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
                         //is via udp to chord //
                     }
                 }
@@ -876,10 +877,8 @@ int main(int argc, char *argv[])
         }
         else if(chord_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(chord_fd, &mask_copy);
-            if((n = recvfrom(chord_fd, (char *)buff, message_size, MSG_WAITALL, (struct sockaddr*)&chord_addr,&len)) !=0){
-                sendto(chord_fd, "ACK", 4, 
-                    MSG_CONFIRM, (const struct sockaddr *) &chord_addr,
-                        len);
+            if((n = recv(chord_fd, (char *)buff, message_size, MSG_WAITALL)) !=0){
+                send(chord_fd, "ACK", 4, MSG_CONFIRM);
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
             if (*buff=='E'){
@@ -930,6 +929,7 @@ int main(int argc, char *argv[])
         }
         else if(tcp_c_fd && FD_ISSET(tcp_c_fd, &mask)){
             FD_CLR(tcp_c_fd, &mask_copy);
+    
             if((n = read(tcp_c_fd, buff, message_size)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
