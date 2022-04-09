@@ -557,7 +557,6 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
             //preciso de guardar o adress (cus it's udp only) portanto uma array de addresses chega e o n é incremental e guarda lá dentro o address maybe ? 
             //todo algumas ideias (cansado para implementar atm )
             if(check<5){
-                memset(buff,0,sizeof(char)*100);
                 sprintf(buff,"%s %s %s %s","EPRED",command.key, command.IP,command.PORT);
                 answer_to_a_EFND(&EFND_saved_addr[check],udp_fd,buff);
                 //this key search was started by a EFND
@@ -565,10 +564,10 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
             else{
                 key = my_searches[check];
                 printf("%s %d:\n\t%s %s %s\n","Resposta ao find",key,command.key,command.IP, command.PORT);
-
-            }                   
+            }
+            my_searches[check]=-1;                   
         }else{
-            if((chord_fd==0)||(check_distance(succ.key,command.searched_key))>= check_distance(chord.key,command.searched_key)) {
+            if((chord_fd==0)||(check_distance(succ.key,command.searched_key))< check_distance(chord.key,command.searched_key)) {
                 strcat(buff,"\n\0");
                 write(tcp_fd,buff,strlen(buff));
             }else{
@@ -786,7 +785,6 @@ int main(int argc, char *argv[])
                 
             else if (*fcommand =='b' ){/*enters the ring knowing only one random node*/
                 bentry_routine(fcommand, & command_details,&chord_fd, buff,len,me.key);
-                
             }
                 
             else if (*fcommand == 'p' ){/*enters the ring know it's pred_key*/
@@ -905,11 +903,13 @@ int main(int argc, char *argv[])
                 send(chord_fd, "ACK", 4, MSG_CONFIRM);
                 buff[strcspn(buff, "\n")] = 0;
                 printf("%s\n", buff);
-            if (*buff=='E'){
-                    process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff,tcp_s_fd,chord_fd,udp_fd,
-                                        EFND_saved_addr,my_searches,len,chord_fd,&tcp_c_fd,&tcp_servaddr,udp_server_addr);
-                }
+                if (*buff=='E'){
+                        process_EFND_EPRED(in_a_ring,me,&pred, succ,chord,&command_details,buff,tcp_s_fd,chord_fd,udp_fd,
+                                            EFND_saved_addr,my_searches,len,chord_fd,&tcp_c_fd,&tcp_servaddr,udp_server_addr);
+                    }     
             }
+            close(chord_fd);
+            chord_fd=0;
         }
         else if(accepted_socket && FD_ISSET(accepted_socket, &mask)){
             FD_CLR(accepted_socket, &mask_copy);
@@ -987,3 +987,14 @@ int main(int argc, char *argv[])
 
 
 
+/*
+buffer[512]
+encontra \n (pelo menos em tcp)
+passa até essa posição para o buff 
+processa o buff
+caso não completo continua para o select kinda 
+*/
+
+/*
+add a timer on recieving ACK so i can resend
+*/
