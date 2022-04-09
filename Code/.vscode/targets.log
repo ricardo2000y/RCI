@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Apr  8 20:16:58 2022
+# Make data base, printed on Sat Apr  9 15:13:46 2022
 
 # Variables
 
@@ -63,7 +63,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-20e93cdc-f21d-414e-bdd3-70e27e8c8d0b.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-fb97759e-7dba-4097-ab16-96c4700effcb.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +83,7 @@ MODE = -g3
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/10_interop
+WSL_INTEROP = /run/WSL/13_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -180,8 +180,10 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
+# environment
+MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
+# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
 
 # Pattern-specific Variable Values
 
@@ -189,9 +191,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2080, inode 35736): 15 files, no impossibilities.
+# . (device 2080, inode 35736): 16 files, no impossibilities.
 
-# 15 files, no impossibilities in 1 directories.
+# 16 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,7 +280,6 @@ ring.o: ring.c
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
 cleanall: clean cleanExe
- 
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
@@ -298,6 +299,7 @@ udpclient: A_UDPClient.c udpclient
 #  recipe to execute (from 'Makefile', line 57):
 	$(CC) $(MODE)  $(CFLAGS) A_UDPClient.c -o udpclient  
 
+ 
 tcpc: tcpclient
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -320,12 +322,12 @@ tcpclient: A_tcp_client.c tcpclient
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 29 / storage = 256 B / avg = 8 B
-# current buf: size = 8162 B / used = 256 B / count = 29 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 30 / storage = 273 B / avg = 9 B
+# current buf: size = 8162 B / used = 273 B / count = 30 / avg = 9 B
 
-# strcache performance: lookups = 70 / hit rate = 58%
+# strcache performance: lookups = 71 / hit rate = 57%
 # hash-table stats:
-# Load=29/8192=0%, Rehash=0, Collisions=1/70=1%
-# Finished Make data base on Fri Apr  8 20:16:58 2022
+# Load=30/8192=0%, Rehash=0, Collisions=1/71=1%
+# Finished Make data base on Sat Apr  9 15:13:46 2022
 
  
