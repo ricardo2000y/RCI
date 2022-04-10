@@ -41,7 +41,13 @@ recieves:"ACK",FND,RSP, EFND//  * when EFND we need to store the addres (maybe s
 //! making quick resume of the connections so i don't lose myself on making the functions
 
 
-// * mode 1 = find  mode false = EFND
+//! change key/ port in running time function 
+//! on the find function check if the searched number is valid
+//*- same for bentry
+
+
+//! check for every user input if command is = to proper command or abreviation
+ //todo help command
 bool check_free_position(int* my_searches, bool mode,int* n){
     static int i = 4;
     static int k = -1;
@@ -314,16 +320,19 @@ void new(node *me, node *pred, node *succ,node* temp_node){
 
 void bentry_routine(char* fcommand, command_details_t* command_details,int* chord_fd,char*buff,char* key){
     if(split_command(fcommand,command_details)){
-        sprintf(buff,"%s %s","EFND", key);
-        init_udp_client(chord_fd,command_details->PORT,command_details->IP);
-        
-        send(*chord_fd,buff,strlen(buff),MSG_CONFIRM);
-        recv(*chord_fd,buff,4,0);
-        if(*buff!='A'){
-            printf("No ACK, retry bentry");
-            close(*chord_fd);
-            *chord_fd=0;
+        if((strcmp(command_details->command,"bentry")==0)||(strcmp(command_details->command,"b")==0)){
+             sprintf(buff,"%s %s","EFND", key);
+            init_udp_client(chord_fd,command_details->PORT,command_details->IP);
+            
+            send(*chord_fd,buff,strlen(buff),MSG_CONFIRM);
+            recv(*chord_fd,buff,4,0);
+            if(*buff!='A'){
+                printf("No ACK, retry bentry");
+                close(*chord_fd);
+                *chord_fd=0;
+            }
         }
+        else printf("bad command\n");
     }
 
 }
@@ -331,11 +340,14 @@ void bentry_routine(char* fcommand, command_details_t* command_details,int* chor
 //routine for pentry splitting the command till sending the SELF
 void pentry(char* fcommand,command_details_t* command_details,node* pred,node* me,char* buff,int* tcp_c_fd,SA_in* tcp_servaddr){
     if(split_command(fcommand,command_details)){
-        strcpy(pred->IP,command_details->IP);
-        strcpy(pred->key,command_details->key);
-        strcpy(pred->PORT,command_details->PORT);
-        sprintf(buff,"%s %s %s %s\n","SELF", me->key,me->IP,me->PORT);
-        tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff);
+        if((strcmp(command_details->command,"pentry")==0)||strcmp(command_details->command,"p")){
+            strcpy(pred->IP,command_details->IP);
+            strcpy(pred->key,command_details->key);
+            strcpy(pred->PORT,command_details->PORT);
+            sprintf(buff,"%s %s %s %s\n","SELF", me->key,me->IP,me->PORT);
+            tcp_client(tcp_c_fd,tcp_servaddr,pred->PORT,pred->IP,buff);
+        }
+        else printf("bad command\n");
     }   
 }
 
@@ -550,7 +562,11 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
                 }    
             }
             my_searches[check]=-1;                   
-        }else{
+        }
+        else if(strcmp(me.key,command.key)==0){
+            printf("some RSP didn't get to the destination after a full round trip on the ring\n");
+        }
+        else{
             if((chord_fd==0)||(check_distance(succ.key,command.searched_key))< check_distance(chord.key,command.searched_key)) {
                 strcat(buff,"\n\0");
                 write(tcp_fd,buff,strlen(buff));
@@ -766,12 +782,16 @@ int main(int argc, char *argv[])
             FD_CLR(0, &mask_copy);
             get_info_from_client( fcommand);
             if (*fcommand == 'n'){/* creates a new, empty ring where the node will ocupy the given key position per default */
-                if(!in_a_ring){
+                if((strcmp(fcommand,"new")==0)||(strcmp(fcommand,"n")==0)){
+                     if(!in_a_ring){
                     in_a_ring =true; 
                     entered_ring = time(NULL);
                     new(&me, &succ,&pred,&temp_node);
+                    }
+                    else printf("Already in a ring\n");
                 }
-                else printf("Already in a ring\n");
+                else printf("bad command\n");
+               
             }
                 
             else if (*fcommand =='b' ){/*enters the ring knowing only one random node*/
@@ -787,26 +807,35 @@ int main(int argc, char *argv[])
             else if (*fcommand =='c' ){/*creates a udp shortcut to a given key, key_ip, key_port*/                
                 if(chord_fd==0){
                     if(split_command(fcommand,&command_details)){
-                        strcpy(chord.IP,command_details.IP);
-                        stpcpy(chord.key,command_details.key);
-                        strcpy(chord.PORT,command_details.PORT);
-                        init_udp_client(&chord_fd,command_details.PORT,command_details.IP);
+                        if((strcmp(command_details.command,"chord")==0)||(strcmp(command_details.command,"c")==0)){
+                            strcpy(chord.IP,command_details.IP);
+                            stpcpy(chord.key,command_details.key);
+                            strcpy(chord.PORT,command_details.PORT);
+                            init_udp_client(&chord_fd,command_details.PORT,command_details.IP);
+                        }
+                        else printf("bad command\n");
                     }
                 }else printf("Already have a chord, delete that one before making a new one\n");    
             }
                 
             else if(*fcommand == 'd' ){//echord 
                 if(chord.IP!=0){
-                    FD_CLR(chord_fd,&mask_copy);
-                    close(chord_fd);
-                    memset(&chord, 0,sizeof(node));
-                    chord_fd= 0;
+                    if((strcmp(command_details.command,"delchord")==0)||(strcmp(command_details.command,"d")==0)){
+                        FD_CLR(chord_fd,&mask_copy);
+                        close(chord_fd);
+                        memset(&chord, 0,sizeof(node));
+                        chord_fd= 0;  
+                    }
+                    else printf("bad command\n");
                 }
             }
                 
             else if(*fcommand =='s' ){// show current status
-                time_t uptime =time(NULL)- entered_ring;
-                show_status(in_a_ring, me,succ,pred,chord,uptime,chord_fd,tcp_c_fd,tcp_s_fd);
+                if((strcmp(fcommand,"show")==0)||(strcmp(fcommand,"s")==0)){
+                    time_t uptime =time(NULL)- entered_ring;
+                    show_status(in_a_ring, me,succ,pred,chord,uptime,chord_fd,tcp_c_fd,tcp_s_fd);                    
+                }
+                else printf("bad command\n");
             }
                 
             else if(*fcommand =='f' ){
@@ -816,50 +845,61 @@ int main(int argc, char *argv[])
                 // for now it shall do the job still need to implement all the message sending and writting the output 
                 // on the mine/pred key (find a good way to present it to the user !)
                 if(split_find_command(fcommand,&command_details)){
-                    check = common_code_FND_EFND(1,me,succ,pred,chord,command_details,&tcp_or_udp,chord_fd);
-                    if(check==1){// verifies if it is mine or not
-                        printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,me.key,me.IP, me.PORT);
-                        //key is mine
-                    }else if (check ==0){
-                        printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,pred.key,pred.IP, pred.PORT);
-                    
-                        //key is from my pred
-                    }
-                    // * starts a FND so need to save the searched key in the array and update the n
-                    else if(!check_free_position(my_searches,1,&check)){
-                            my_searches[check]= strtol(command_details.searched_key, NULL, 10);
+                    if((strcmp(command_details.command,"find")==0)||(strcmp(command_details.command,"f")==0)){
+                        check = common_code_FND_EFND(1,me,succ,pred,chord,command_details,&tcp_or_udp,chord_fd);
+                        if(check==1){// verifies if it is mine or not
+                            printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,me.key,me.IP, me.PORT);
+                            //key is mine
+                        }else if (check ==0){
+                            printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,pred.key,pred.IP, pred.PORT);
                         
-                        if(tcp_or_udp){
-                            // is tcp to succ
-                            sprintf(buff,"%s %s %d %s %s %s\n","FND",command_details.searched_key,check,me.key, me.IP, me.PORT);
-                            write(tcp_s_fd, buff, strlen(buff));
+                            //key is from my pred
                         }
-                        else{
-                            sprintf(buff,"%s %s %d %s %s %s","FND",command_details.searched_key,check,me.key, me.IP, me.PORT);
-                            send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
-                            recv(chord_fd,buff, 4,0);
-                            if (*buff!='A'){
-                                printf("sending via chord failed, sending via tcp\n");
-                                strcat(buff,"\n\0");
+                        // * starts a FND so need to save the searched key in the array and update the n
+                        else if(!check_free_position(my_searches,1,&check)){
+                                my_searches[check]= strtol(command_details.searched_key, NULL, 10);
+                            
+                            if(tcp_or_udp){
+                                // is tcp to succ
+                                sprintf(buff,"%s %s %d %s %s %s\n","FND",command_details.searched_key,check,me.key, me.IP, me.PORT);
                                 write(tcp_s_fd, buff, strlen(buff));
                             }
-                            //is via udp to chord //
+                            else{
+                                sprintf(buff,"%s %s %d %s %s %s","FND",command_details.searched_key,check,me.key, me.IP, me.PORT);
+                                send(chord_fd,buff,strlen(buff),MSG_CONFIRM);
+                                recv(chord_fd,buff, 4,0);
+                                if (*buff!='A'){
+                                    printf("sending via chord failed, sending via tcp\n");
+                                    strcat(buff,"\n\0");
+                                    write(tcp_s_fd, buff, strlen(buff));
+                                }
+                                //is via udp to chord //
+                            }
                         }
+                        else printf("Can't start a FND atm cus storage is full\n");
+
                     }
-                    else printf("Can't start a FND atm cus storage is full\n");
+                    else printf("bad command\n");
                 }    
             }
                 
             else if(*fcommand =='l'){
                if(in_a_ring){
-                    leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd,&mask_copy,&udp_fd,&listen_fd,&locked);
-                    in_a_ring= false;
-               }
+                    if((strcmp(command_details.command,"leave")==0)||(strcmp(command_details.command,"l")==0)){
+                        leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd,&mask_copy,&udp_fd,&listen_fd,&locked);
+                        in_a_ring= false;
+                    }
+                    else printf("bad command\n");
+                }
+                else printf("can't leave cus not in a ring\n");
             }
 
             else if(*fcommand =='e' ){// exit
-                exit_routine(&chord_fd,&tcp_c_fd,&accepted_socket,&listen_fd, &udp_fd);     
-                //exit => close all sockets and return 0
+                if((strcmp(command_details.command,"exit")==0)||(strcmp(command_details.command,"e")==0)){
+                    exit_routine(&chord_fd,&tcp_c_fd,&accepted_socket,&listen_fd, &udp_fd);     
+                    //exit => close all sockets and return 0
+                }
+                else printf("bad command\n");
             }
 
             else{

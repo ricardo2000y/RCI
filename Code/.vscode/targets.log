@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Apr  9 15:13:46 2022
+# Make data base, printed on Sun Apr 10 15:11:56 2022
 
 # Variables
 
@@ -63,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-fb97759e-7dba-4097-ab16-96c4700effcb.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-eb170e35-364b-44b5-8f12-a8d770f6e66a.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +81,7 @@ MODE = -g3
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/13_interop
+WSL_INTEROP = /run/WSL/9_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -180,10 +178,8 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
-# environment
-MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=85/1024=8%, Rehash=0, Collisions=5/121=4%
+# Load=84/1024=8%, Rehash=0, Collisions=5/120=4%
 
 # Pattern-specific Variable Values
 
@@ -280,6 +276,9 @@ ring.o: ring.c
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
 
 cleanall: clean cleanExe
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
@@ -299,7 +298,6 @@ udpclient: A_UDPClient.c udpclient
 #  recipe to execute (from 'Makefile', line 57):
 	$(CC) $(MODE)  $(CFLAGS) A_UDPClient.c -o udpclient  
 
- 
 tcpc: tcpclient
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -328,6 +326,6 @@ tcpclient: A_tcp_client.c tcpclient
 # strcache performance: lookups = 71 / hit rate = 57%
 # hash-table stats:
 # Load=30/8192=0%, Rehash=0, Collisions=1/71=1%
-# Finished Make data base on Sat Apr  9 15:13:46 2022
+# Finished Make data base on Sun Apr 10 15:11:56 2022
 
  
