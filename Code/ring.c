@@ -45,6 +45,8 @@ recieves:"ACK",FND,RSP, EFND//  * when EFND we need to store the addres (maybe s
 //! on the find function check if the searched number is valid
 //*- same for bentry
 
+//TODO make sure no self is done if conditions for it are not checked
+//* add a variable to check if new or pred was done so i can or not accept conn/selfs
 
 //! check for every user input if command is = to proper command or abreviation
  //todo help command
@@ -259,7 +261,7 @@ void tcp_client(int *tcp_c_fd,SA_in *tcp_servaddr, char * port_, char*addr, char
 
 }
 
-//todo mudar o nome para algo que diga explicitamente UDP_chord
+
 void init_udp_client(int* sockfd,  char* port_ch ,char* addr){
      // Creating socket file descriptor
     SA_in servaddr; 
@@ -276,7 +278,6 @@ void init_udp_client(int* sockfd,  char* port_ch ,char* addr){
     tv.tv_sec =0;
     tv.tv_usec =50000; // *0.05 segundos posso mudar o valor 
     setsockopt(*sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-    //! insert the check for inet_pton
     if (inet_pton( AF_INET, addr, (in_addr_t*) &servaddr.sin_addr.s_addr) < 1) {
 		//inet_pton - convert IPv4 and IPv6 addresses from text to binary form 
 		// returns 0 if given adress isn't valid 
@@ -287,27 +288,6 @@ void init_udp_client(int* sockfd,  char* port_ch ,char* addr){
     }  
 }
 
-/*void send_recieve_udp_message(bool mode,int sock_fd, SA_in* servaddr, char* buff,size_t message_size){
-	int n;
-    socklen_t len = sizeof(*servaddr);
-    
-    
-
-    if(mode){
-        sendto(sock_fd, buff, strlen(buff),
-            MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
-        n = recvfrom(sock_fd, buff, message_size, 
-            MSG_WAITALL, (struct sockaddr *) servaddr,&len);
-        // * here we are recieving an ACK size is 3 or 4 so not going to use buff (?)
-    
-    }else{
-        n = recvfrom(sock_fd, buff, message_size, 
-        MSG_WAITALL, (struct sockaddr *) servaddr,&len);
-        sendto(sock_fd,"ACK", 4,
-            MSG_CONFIRM, (const struct sockaddr *) servaddr, len);
-        // * here we are SENDING an ACK size is 3 or 4 so not going to use buff (?)
-    }
-}*/
 
 //routine for creating a new node, has to initialize the successor and predecessor nodes
 // TODO: add more stuff need to check what is missing for new (pbbly had stuff to the select mask (the new sockets from the udp/tcp(listen_sd) servers))
@@ -321,13 +301,12 @@ void new(node *me, node *pred, node *succ,node* temp_node){
 void bentry_routine(char* fcommand, command_details_t* command_details,int* chord_fd,char*buff,char* key){
     if(split_command(fcommand,command_details)){
         if((strcmp(command_details->command,"bentry")==0)||(strcmp(command_details->command,"b")==0)){
-             sprintf(buff,"%s %s","EFND", key);
+            sprintf(buff,"%s %s","EFND", key);
             init_udp_client(chord_fd,command_details->PORT,command_details->IP);
-            
             send(*chord_fd,buff,strlen(buff),MSG_CONFIRM);
             recv(*chord_fd,buff,4,0);
             if(*buff!='A'){
-                printf("No ACK, retry bentry");
+                printf("No ACK, retry bentry\n");
                 close(*chord_fd);
                 *chord_fd=0;
             }
@@ -558,7 +537,7 @@ void process_FND_RSP(char* buff,node me,node succ,node pred,node chord, int tcp_
             else{
                 if(my_searches[check]!=-1){
                     key = my_searches[check];
-                    printf("%s %d:\n\t%s %s %s\n","Resposta ao find",key,command.key,command.IP, command.PORT);
+                    printf("%s %d: %s %s (%s:%s)\n","Chave ",key,"nó",command.key,command.IP, command.PORT);
                 }    
             }
             my_searches[check]=-1;                   
@@ -638,6 +617,13 @@ void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, 
                 }         
             }
         }   
+     /* typedef store_finds{
+         char[40];
+     } store_finds_t;
+     store_finds_t store_finds[100];
+     static n =0; 
+     
+     */ 
     }else if(strcmp("EPRED",command_details->command)==0){
         split_str_nd_copy_to_new_location(&str_to_split,pred->key);
         split_str_nd_copy_to_new_location(&str_to_split,pred->IP);
@@ -674,7 +660,7 @@ void mask_init(fd_set *mask_copy,int*maxfd,int udp_fd,int listen_fd,int chord_fd
     }
 }
 
-void  init_tcp_server(int *listen_fd, int PORT){
+void init_tcp_server(int *listen_fd, int PORT){
 	SA_in tcp_servaddr;  
 	*listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (*listen_fd == -1) {
@@ -709,7 +695,7 @@ void  init_tcp_server(int *listen_fd, int PORT){
 		printf("Server listening.\n");
 }
 
-void  init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
+void init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
 	//SA_in tcp_servaddr;
 // Creating socket file descriptor
     if ( (*udp_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -820,7 +806,7 @@ int main(int argc, char *argv[])
                 
             else if(*fcommand == 'd' ){//echord 
                 if(chord.IP!=0){
-                    if((strcmp(command_details.command,"delchord")==0)||(strcmp(command_details.command,"d")==0)){
+                    if((strcmp(fcommand,"delchord")==0)||(strcmp(fcommand,"d")==0)){
                         FD_CLR(chord_fd,&mask_copy);
                         close(chord_fd);
                         memset(&chord, 0,sizeof(node));
@@ -848,10 +834,10 @@ int main(int argc, char *argv[])
                     if((strcmp(command_details.command,"find")==0)||(strcmp(command_details.command,"f")==0)){
                         check = common_code_FND_EFND(1,me,succ,pred,chord,command_details,&tcp_or_udp,chord_fd);
                         if(check==1){// verifies if it is mine or not
-                            printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,me.key,me.IP, me.PORT);
+                            printf("%s %s: %s %s (%s:%s)\n","Chave ",command_details.searched_key,"nó",me.key,me.IP, me.PORT);
                             //key is mine
                         }else if (check ==0){
-                            printf("%s %s:\n\t%s %s %s\n","Resposta ao find",command_details.searched_key,pred.key,pred.IP, pred.PORT);
+                            printf("%s %s: %s %s (%s:%s)\n","Chave ",command_details.searched_key,"nó",pred.key,pred.IP, pred.PORT);
                         
                             //key is from my pred
                         }
@@ -885,7 +871,7 @@ int main(int argc, char *argv[])
                 
             else if(*fcommand =='l'){
                if(in_a_ring){
-                    if((strcmp(command_details.command,"leave")==0)||(strcmp(command_details.command,"l")==0)){
+                    if((strcmp(fcommand,"leave")==0)||(strcmp(fcommand,"l")==0)){
                         leave_ring(me,&succ,&pred,buff,&chord_fd,&tcp_c_fd,&accepted_socket,&tcp_s_fd,&mask_copy,&udp_fd,&listen_fd,&locked);
                         in_a_ring= false;
                     }
@@ -895,7 +881,7 @@ int main(int argc, char *argv[])
             }
 
             else if(*fcommand =='e' ){// exit
-                if((strcmp(command_details.command,"exit")==0)||(strcmp(command_details.command,"e")==0)){
+                if((strcmp(fcommand,"exit")==0)||(strcmp(fcommand,"e")==0)){
                     exit_routine(&chord_fd,&tcp_c_fd,&accepted_socket,&listen_fd, &udp_fd);     
                     //exit => close all sockets and return 0
                 }

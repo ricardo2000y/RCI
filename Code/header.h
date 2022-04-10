@@ -35,12 +35,6 @@ typedef struct {
     char PORT[10];
 }command_details_t;
 
-typedef struct{
-    char message[100];
-    SA_in addr;
-    socklen_t addr_len;
-}message_info_t;
-
 typedef struct client_addr_t{
     char addr[INET_ADDRSTRLEN];
     int port;
