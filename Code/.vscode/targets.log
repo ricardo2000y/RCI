@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Apr 13 21:45:13 2022
+# Make data base, printed on Thu Apr 14 00:38:20 2022
 
 # Variables
 
@@ -63,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-b0ad8b9c-d739-4c75-a2fc-ef2225439a50.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-8ff50f25-6514-4a70-8846-6fb505707681.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -83,7 +81,7 @@ MODE = -g3
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/10_interop
+WSL_INTEROP = /run/WSL/11_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -191,9 +189,9 @@ MOTD_SHOWN = update-motd
 
 # Directories
 
-# . (device 2080, inode 35736): 9 files, no impossibilities.
+# . (device 2080, inode 35736): 10 files, no impossibilities.
 
-# 9 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -277,8 +275,10 @@ ring.o: ring.c
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 51):
- 
 	$(CC) $(MODE) $(CFLAGS) -c $< -o $@ 
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
@@ -322,12 +322,12 @@ tcpclient: A_tcp_client.c tcpclient
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 25 / storage = 214 B / avg = 8 B
-# current buf: size = 8162 B / used = 214 B / count = 25 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 231 B / avg = 8 B
+# current buf: size = 8162 B / used = 231 B / count = 26 / avg = 8 B
 
-# strcache performance: lookups = 64 / hit rate = 60%
+# strcache performance: lookups = 65 / hit rate = 60%
 # hash-table stats:
-# Load=25/8192=0%, Rehash=0, Collisions=1/64=2%
-# Finished Make data base on Wed Apr 13 21:45:13 2022
+# Load=26/8192=0%, Rehash=0, Collisions=1/65=2%
+# Finished Make data base on Thu Apr 14 00:38:20 2022
 
  

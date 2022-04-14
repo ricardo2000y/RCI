@@ -74,27 +74,8 @@ bool check_free_position(int* my_searches, bool mode,int* n){
 //Adds clients that connect for the first time to the server and saves their info in a array of clients
 //? have to revise
 void add_client(client_addr_t * clients_data,int n , SA_in client_addr) {
-    inet_ntop( AF_INET, &client_addr.sin_addr, clients_data[n].addr, INET_ADDRSTRLEN );
-    
+    inet_ntop( AF_INET, &client_addr.sin_addr, clients_data[n].addr, INET_ADDRSTRLEN );  
     clients_data[n].port = (int) ntohs(client_addr.sin_port);
-    printf("IP address: %s\n", clients_data[n].addr);
-
-    printf("Port: %d\n", clients_data[n].port);
-
-    /* Accept client request */
-   /* int client_socket = accept(server_socket, 
-        (struct sockaddr *)&client_addr, &client_len);
-
-    char hoststr[NI_MAXHOST];
-    char portstr[NI_MAXSERV];
-
-    int rc = getnameinfo((struct sockaddr *)&client_addr, 
-        client_len, hoststr, sizeof(hoststr), portstr, sizeof(portstr), 
-        NI_NUMERICHOST | NI_NUMERICSERV);
-
-    if (rc == 0) 
-        printf("New connection from %s %s", hoststr, portstr);*/
-
 }
 
 // gets line from stdin given by user
@@ -626,13 +607,7 @@ void process_EFND_EPRED(bool in_a_ring,node me,node* pred,node succ,node chord, 
                 }         
             }
         }   
-     /* typedef store_finds{
-         char[40];
-     } store_finds_t;
-     store_finds_t store_finds[100];
-     static n =0; 
-     
-     */ 
+        
     }else if(strcmp("EPRED",command_details->command)==0){
         split_str_nd_copy_to_new_location(&str_to_split,pred->key);
         split_str_nd_copy_to_new_location(&str_to_split,pred->IP);
@@ -719,9 +694,9 @@ void init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
     if ((setsockopt(*udp_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int))) < 0){
         perror("setsockopt(SO_REUSEADDR) failed");
     }
-        struct timeval tv;
+    struct timeval tv;
     tv.tv_sec =0;
-    tv.tv_usec =50000; // *0.05 segundos posso mudar o valor 
+    tv.tv_usec =50000; // 0.05 segundos
     setsockopt(*udp_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     // Bind the socket with the server address
     if ( bind(*udp_fd, (const struct sockaddr *)tcp_servaddr, sizeof(*tcp_servaddr)) < 0 ){
@@ -753,6 +728,9 @@ int main(int argc, char *argv[])
     size_t pointer =0;
     char* handler=NULL,* tester;
     char* buffer_to_split ,*buffer_to_free ;
+    struct timeval tv;
+    tv.tv_sec =0;
+    tv.tv_usec =50000; // 0.05 segundos
     // VAR INIT
     for(;;){
         if(!locked){
@@ -1011,10 +989,12 @@ int main(int argc, char *argv[])
             FD_CLR(listen_fd, &mask_copy);
             if(accepted_socket!=0)close(accepted_socket);
             accepted_socket = accept(listen_fd, (SA*)&tcp_client_addr, &len);
+            setsockopt(accepted_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
             if (accepted_socket < 0) {
                 printf("Server accept failed.\n");
                 exit(0);
-            }      
+            }
+                  
         }     
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
