@@ -113,7 +113,7 @@ bool valid_IP_port_key(char* IP, char* PORT,char* key){
     bool port_validator=false, ip_validator=false,key_validator=false;// * control variables 
     int  check;//* used to check if the port/key are valid
     char ipvalidation[INET_ADDRSTRLEN];
-    check = strtol(key, NULL, 10);//* converts the key str into integer typw
+    check = strtol(key, NULL, 10);//* converts the key str into integer type
     if(check <MAX_KEY && check > -1) key_validator = true;
     ip_validator = (bool)inet_pton( AF_INET, IP, ipvalidation );// * inetpton returns 0 incase the given ip is not valid 
     check = strtol(PORT, NULL, 10);//* converts the port into decimal
@@ -238,7 +238,7 @@ void init_udp_client(int* chord_fd,  char* port_ch ,char* addr){
     // establishing a timeout
     struct timeval timeout;
     timeout.tv_sec =0;
-    timeout.tv_usec =100000; // *0.1 secs
+    timeout.tv_usec =TIMEOUT; // *0.1 secs
     setsockopt(*chord_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof (timeout));
     if (inet_pton( AF_INET, addr, (in_addr_t*) &servaddr.sin_addr.s_addr) < 1) {
 		//inet_pton - convert IPv4 and IPv6 addresses from text to binary form 
@@ -623,7 +623,7 @@ void init_udp_server(int *udp_fd, int PORT, SA_in *tcp_servaddr){
     }
     struct timeval timeout;
     timeout.tv_sec =0;
-    timeout.tv_usec =50000; // 0.05 segundos
+    timeout.tv_usec =TIMEOUT; // 0.1 segundos
     setsockopt(*udp_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof (timeout));
     // Bind the socket with the server address
     if ( bind(*udp_fd, (const struct sockaddr *)tcp_servaddr, sizeof(*tcp_servaddr)) < 0 ){
@@ -672,7 +672,7 @@ int main(int argc, char *argv[]){
     client_addr_t EFND_saved_addr[5];
     struct timeval timeout;
     timeout.tv_sec =0;
-    timeout.tv_usec =50000; // *0.05 segundos
+    timeout.tv_usec =TIMEOUT; // *0.1 segundos
     // VAR INIT
     
     for(;;){
@@ -812,8 +812,8 @@ int main(int argc, char *argv[]){
 
             //ADITIONAL FUNCTIONS
             
-            //command key - changes the key of the node witout restarting the programm
-            else if(*fcommand =='k'){// change my key in running time implies updating the info on my pred/succ
+            //command key - changes the key of the node without restarting the programm
+            else if(*fcommand =='k'){// change my key in running time 
                 if(split_small_command(fcommand,&command_details,1)){
                     if((strcmp(command_details.command,"key")==0)||(strcmp(command_details.command,"k")==0)){
                         check = strtol(command_details.key, NULL, 10);
@@ -891,6 +891,7 @@ int main(int argc, char *argv[]){
                     help();  
                 }
             }
+
             else printf("Command given, \" %s\",  is not valid.\n", fcommand); 
         }
 
@@ -906,7 +907,7 @@ int main(int argc, char *argv[]){
             }    
         }     
 
-        //udp connection to process FND, RSP, EFND and EPRED and sends ACK
+        //udp connection to process FND, RSP, EFND and EPRED(is also used to send EPRED)and sends ACK
         else if(udp_fd && FD_ISSET(udp_fd,&mask)){
             FD_CLR(udp_fd, &mask_copy);
             if((n = recvfrom(udp_fd, (char *)buff, message_size, MSG_WAITALL, ( struct sockaddr *) &udp_server_addr,&len)) !=0){
@@ -923,7 +924,7 @@ int main(int argc, char *argv[]){
             }
         }
 
-        //udp connection to process chord and sends ACK
+        //udp connection to process EPRED(is also used to send EFND) and sends ACK
         else if(chord_fd && FD_ISSET(chord_fd,&mask)){
             FD_CLR(chord_fd, &mask_copy);
             if((n = recv(chord_fd, (char *)buff, message_size, MSG_WAITALL)) !=0){
@@ -939,48 +940,69 @@ int main(int argc, char *argv[]){
             chord_fd=0;
         }
 
-        //reads message from accepted socket, copies it to a buffer and splits it when its a SELF or PRED message
-        //processes this messages
+        //reads message from tcp_c_fd socket, copies it to a buffer and then split's when finds a \n, processing one command at a time
+        //processes SELF 
         else if(accepted_socket && FD_ISSET(accepted_socket, &mask)){
             FD_CLR(accepted_socket, &mask_copy);
-            if((n = read(accepted_socket, buff, message_size)) != 0){
+            if((n = read(accepted_socket, buffer, message_size)) != 0){
                 if(n == -1){
                     printf("Reading error.\n");
                     exit(1);
                 }
-                buff[strcspn(buff, "\n")] = 0;
-                printf("%s\n", buff);
-                if (*buff =='S'){
-                    if (pentry_or_new){
-                        split_SELF_PRED( buff, &temp_node,"SELF",&command_details);
-                        if(in_a_ring){
-                            if((strcmp(me.key, succ.key))==0){
-                                sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
-                                copy_node_info(&temp_node,&pred);
-                                tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);                                
-                            }else {
-                                sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
-                                write(tcp_s_fd,buff,strlen(buff));                            
-                            }
-                        }else{
-                            in_a_ring=1;
-                            entered_ring = time(NULL);
+                buffer_to_split = buffer_to_free= strdup(buffer);
+                do{ 
+                    pointer=0;
+                    if((tester=strchr(buffer_to_split,'\n')) == NULL){
+                        if(*buffer_to_split!=0){
+                            memset(buffer,0,buffer_size);
+                            strcpy(buffer,buffer_to_split);
+                            free(buffer_to_free);
+                            pointer = strlen(buffer);
+                            read(tcp_c_fd, (buffer+pointer), (buffer_size-pointer));
+                            if(sizeof(buffer)==pointer)memset(buffer,0,buffer_size);
+                            buffer_to_split = buffer_to_free = strdup(buffer);
+                        }
+                    }
+                    handler = strsep(&buffer_to_split,"\n");
+                    if(handler!=0){
+                        strcpy(buff,handler);
+                        buff[strcspn(buff, "\n")] = 0;
+                        printf("%s\n", buff);
+                        
+                        if (*buff =='S'){
+                            if (pentry_or_new){
+                                split_SELF_PRED( buff, &temp_node,"SELF",&command_details);
+                                if(in_a_ring){
+                                    if((strcmp(me.key, succ.key))==0){
+                                        sprintf(buff,"%s %s %s %s\n","SELF", me.key,me.IP,me.PORT);
+                                        copy_node_info(&temp_node,&pred);
+                                        tcp_client(&tcp_c_fd,&tcp_servaddr,temp_node.PORT,temp_node.IP,buff);                                
+                                    }else {
+                                        sprintf(buff,"%s %s %s %s\n","PRED", temp_node.key,temp_node.IP,temp_node.PORT);
+                                        write(tcp_s_fd,buff,strlen(buff));                            
+                                    }
+                                }else{
+                                    in_a_ring=1;
+                                    entered_ring = time(NULL);
+                                } 
+                                copy_node_info(&temp_node,&succ);
+                                tcp_s_fd = accepted_socket;
+                                
+                                
+                            }else close(accepted_socket);
+                            accepted_socket=0;
                         } 
-                        copy_node_info(&temp_node,&succ);
-                        tcp_s_fd = accepted_socket;
-                        
-                        
-                    }else close(accepted_socket);
-                    accepted_socket=0;
-                    
-                }  
+                    }         
+                }while(*buffer_to_split!='\0'); 
+                free(buffer_to_free);
             }else {
                 close(accepted_socket);
                 accepted_socket= 0;
             }
         }
 
-        //reads message from accepted socket, copies it to a buffer and reads it until it reaches a \n
+        //reads message from tcp_c_fd socket, copies it to a buffer and then split's when finds a \n, processing one command at a time
+        // processes PRED , FND and RSP
         else if(tcp_c_fd && FD_ISSET(tcp_c_fd, &mask)){
             FD_CLR(tcp_c_fd, &mask_copy);
             if((n = read(tcp_c_fd, buffer, (buffer_size-1))) != 0){

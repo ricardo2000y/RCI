@@ -15,6 +15,7 @@
 
 #define MAX_KEY 32
 #define SOCK_PORT 6969
+#define TIMEOUT 100000
 #define SA struct sockaddr
 #define SA_in struct sockaddr_in
 #define max(A,B) ((A)>=(B)?(A):(B))
@@ -34,7 +35,7 @@ typedef struct {
     char PORT[10];
 }command_details_t;
 
-typedef struct client_addr_t{
+typedef struct{
     char addr[INET_ADDRSTRLEN];
     int port;
 }client_addr_t;

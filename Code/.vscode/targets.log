@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Apr 15 01:27:38 2022
+# Make data base, printed on Fri Apr 15 12:34:55 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-b1678d18-804f-4933-b3e5-adc5517dd0d6.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-d389a8ed-fb4c-48b9-b94f-fbfe4476a9f2.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -81,7 +81,7 @@ MODE = -g3
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/40_interop
+WSL_INTEROP = /run/WSL/12_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -187,9 +187,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2080, inode 35736): 8 files, no impossibilities.
+# . (device 2080, inode 35736): 10 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,6 +278,9 @@ ring.o: ring.c
 cleanall: clean cleanExe
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 #  File does not exist.
 #  File has not been updated.
 
@@ -317,15 +320,12 @@ tcpclient: A_tcp_client.c tcpclient
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 24 / storage = 203 B / avg = 8 B
-# current buf: size = 8162 B / used = 203 B / count = 24 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 252 B / avg = 9 B
+# current buf: size = 8162 B / used = 252 B / count = 26 / avg = 9 B
 
-# strcache performance: lookups = 63 / hit rate = 61%
+# strcache performance: lookups = 65 / hit rate = 60%
 # hash-table stats:
- 
-make: *** No rule to make target 'all'.  Stop.
-
-# Load=24/8192=0%, Rehash=0, Collisions=1/63=2%
-# Finished Make data base on Fri Apr 15 01:27:38 2022
+# Load=26/8192=0%, Rehash=0, Collisions=1/65=2%
+# Finished Make data base on Fri Apr 15 12:34:55 2022
 
  
