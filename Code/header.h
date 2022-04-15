@@ -1,4 +1,3 @@
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -14,18 +13,18 @@
 #include <sys/select.h>
 #include <time.h>
 
-
-
 #define MAX_KEY 32
 #define SOCK_PORT 6969
 #define SA struct sockaddr
 #define SA_in struct sockaddr_in
 #define max(A,B) ((A)>=(B)?(A):(B))
+
 typedef struct {  
     char key[5];
     char IP[20];
     char PORT[10];
 } node;
+
 typedef struct {
     char command[10];
     char n[5];
